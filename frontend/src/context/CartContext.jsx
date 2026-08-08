@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import supabase from '../lib/supabaseClient';
+import { cartAPI } from '../api';
 
 const CartContext = createContext(null);
 
@@ -13,14 +14,25 @@ export const CartProvider = ({ children }) => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('cart_items')
-        .select('*, products(*)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('cart_items')
+          .select('*, products(*)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
-      if (error) throw new Error(error.message);
-      setCart(data || []);
+        if (error) throw new Error(error.message);
+        const normalized = (data || []).map((ci) => ({
+          cart_item_id: ci.id,
+          quantity: ci.quantity,
+          product_id: ci.product_id,
+          ...ci.products,
+        }));
+        setCart(normalized);
+      } else {
+        const response = await cartAPI.get();
+        setCart(response.data || []);
+      }
     } catch (error) {
       console.error('Failed to fetch cart', error);
       alert('Failed to load cart. Please try again.');
@@ -32,14 +44,18 @@ export const CartProvider = ({ children }) => {
   const addToCart = async (productId, quantity = 1) => {
     if (!user) return false;
     try {
-      const { error } = await supabase
-        .from('cart_items')
-        .upsert(
-          { user_id: user.id, product_id: productId, quantity },
-          { onConflict: 'user_id,product_id' }
-        );
+      if (supabase) {
+        const { error } = await supabase
+          .from('cart_items')
+          .upsert(
+            { user_id: user.id, product_id: productId, quantity },
+            { onConflict: 'user_id,product_id' }
+          );
 
-      if (error) throw new Error(error.message);
+        if (error) throw new Error(error.message);
+      } else {
+        await cartAPI.add({ product_id: productId, quantity });
+      }
       await fetchCart();
       return true;
     } catch (error) {
@@ -52,13 +68,17 @@ export const CartProvider = ({ children }) => {
   const updateQuantity = async (itemId, quantity) => {
     if (!user) return;
     try {
-      const { error } = await supabase
-        .from('cart_items')
-        .update({ quantity })
-        .eq('id', itemId)
-        .eq('user_id', user.id);
+      if (supabase) {
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ quantity })
+          .eq('id', itemId)
+          .eq('user_id', user.id);
 
-      if (error) throw new Error(error.message);
+        if (error) throw new Error(error.message);
+      } else {
+        await cartAPI.update(itemId, { quantity });
+      }
       await fetchCart();
     } catch (error) {
       console.error('Failed to update cart', error);
@@ -69,13 +89,17 @@ export const CartProvider = ({ children }) => {
   const removeItem = async (itemId) => {
     if (!user) return;
     try {
-      const { error } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('id', itemId)
-        .eq('user_id', user.id);
+      if (supabase) {
+        const { error } = await supabase
+          .from('cart_items')
+          .delete()
+          .eq('id', itemId)
+          .eq('user_id', user.id);
 
-      if (error) throw new Error(error.message);
+        if (error) throw new Error(error.message);
+      } else {
+        await cartAPI.remove(itemId);
+      }
       await fetchCart();
     } catch (error) {
       console.error('Failed to remove item', error);
@@ -86,12 +110,16 @@ export const CartProvider = ({ children }) => {
   const clearCart = async () => {
     if (!user) return;
     try {
-      const { error } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('user_id', user.id);
+      if (supabase) {
+        const { error } = await supabase
+          .from('cart_items')
+          .delete()
+          .eq('user_id', user.id);
 
-      if (error) throw new Error(error.message);
+        if (error) throw new Error(error.message);
+      } else {
+        await cartAPI.clear();
+      }
       setCart([]);
     } catch (error) {
       console.error('Failed to clear cart', error);
@@ -100,7 +128,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cart.reduce((sum, item) => sum + ((item.products?.price || 0) * item.quantity), 0);
+  const cartTotal = cart.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0);
 
   useEffect(() => {
     if (user) {
