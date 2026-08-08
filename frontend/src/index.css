@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --orange: #ff9900;
+  --dark: #0d1117;
+  --mid: #161b22;
+  --gold: #f5c518;
+  --deal-red: #cc0c39;
+  --deal-green: #067d62;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #eaeded;
+  color: #0f1111;
+}
+
+.gradient-gold {
+  background: linear-gradient(135deg, #f5c518, #ff9900);
+}
+
+.gradient-dark {
+  background: linear-gradient(90deg, #0d1117 0%, #1a1f2e 50%, #0d1117 100%);
+}
+
+.card-3d {
+  transition: transform 0.3s cubic-bezier(.25,.8,.25,1), box-shadow 0.3s;
+  transform-style: preserve-3d;
+}
+
+.card-3d:hover {
+  box-shadow: 16px 22px 44px rgba(0,0,0,0.25), -4px 0 20px rgba(245,197,24,0.18), 0 0 0 1px rgba(245,197,24,0.25);
+  z-index: 10;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes cartBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(28px) scale(.93); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-card-in {
+  animation: cardIn 0.45s ease both;
+}
