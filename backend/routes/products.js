@@ -321,4 +321,30 @@ router.get('/seller/my-products', authMiddleware, sellerOnly, async (req, res) =
   }
 });
 
+router.post('/:id/stock', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { stock } = req.body;
+
+    if (typeof stock !== 'number' || stock < 0) {
+      return res.status(400).json({ message: 'Valid stock quantity is required' });
+    }
+
+    const { data, error } = await supabase
+      .from('products')
+      .update({ stock })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({ message: error.message });
+    }
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

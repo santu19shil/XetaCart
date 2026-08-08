@@ -40,6 +40,7 @@ export const productsAPI = {
   getById: (id) => api.get(`/products/${id}`),
   create: (data) => api.post('/products', data),
   update: (id, data) => api.put(`/products/${id}`, data),
+  updateStock: (id, stock) => api.post(`/products/${id}/stock`, { stock }),
   delete: (id) => api.delete(`/products/${id}`),
   getMyProducts: () => api.get('/products/seller/my-products'),
   getCategories: () => api.get('/products/categories'),

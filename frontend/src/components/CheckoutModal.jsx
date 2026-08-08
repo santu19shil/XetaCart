@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { configAPI } from '../api';
+import { configAPI, productsAPI } from '../api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { syncUpdate } from '../services/sync';
 import { MapPin, MessageCircle, CheckCircle, X } from 'lucide-react';
 
 export default function CheckoutModal({ isOpen, onClose }) {
@@ -82,7 +81,7 @@ export default function CheckoutModal({ isOpen, onClose }) {
     // Update stock in Supabase for each ordered item
     const stockUpdates = cart.map((item) => {
       const newStock = Math.max(0, (item.stock || 0) - item.quantity);
-      return syncUpdate('products', item.product_id, { stock: newStock }).catch((err) => {
+      return productsAPI.updateStock(item.product_id, newStock).catch((err) => {
         console.error('Failed to update stock for product', item.product_id, err);
       });
     });
