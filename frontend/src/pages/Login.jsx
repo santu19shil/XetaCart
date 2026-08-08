@@ -12,17 +12,19 @@ export default function Login() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
+      let loggedInUser;
       if (isRegister) {
         // Buyers create an account (role is forced to 'customer' on the backend)
-        await register(name, email, password, 'customer', phone);
+        loggedInUser = await register(name, email, password, 'customer', phone);
       } else {
-        await login(email, password);
+        loggedInUser = await login(email, password);
       }
-      navigate('/');
+      // Redirect sellers to the Seller Panel, customers to the store home
+      navigate(loggedInUser?.role === 'seller' ? '/seller' : '/');
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');
     }
@@ -32,10 +34,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <div className="w-16 h-14 gradient-gold rounded-lg flex items-center justify-center font-rajdhani font-bold text-white text-2xl shadow-lg shadow-gold/40 mx-auto mb-3">
-              XC
-            </div>
+<div className="text-center mb-8">
+<img src="/logo.png" alt="XetaCart" className="h-20 w-auto object-contain mx-auto mb-3" />
             <h1 className="text-2xl font-bold text-gray-900">{isRegister ? 'Create Account' : 'Sign In'}</h1>
             <p className="text-gray-500 text-sm mt-1">Welcome to XetaCart</p>
           </div>
@@ -84,15 +84,9 @@ export default function Login() {
             </button>
           </div>
 
-          <div className="mt-4 text-center">
+<div className="mt-4 text-center">
             <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">← Back to store</Link>
           </div>
-        </div>
-
-        <div className="mt-4 bg-white/60 rounded-xl p-4 text-center border border-gray-200">
-          <p className="text-xs text-gray-500">
-            🔐 Store Owner? Use the preset seller account to access the Seller Panel.
-          </p>
         </div>
       </div>
     </div>

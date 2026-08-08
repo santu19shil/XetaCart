@@ -1,14 +1,12 @@
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useNavigate } from 'react-router-dom';
 
 export default function CartSidebar({ isOpen, onClose, onCheckout }) {
   const { cart, cartTotal, updateQuantity, removeItem, clearCart } = useCart();
-  const navigate = useNavigate();
 
   const handleCheckout = () => {
     onClose();
-    navigate('/checkout');
+    onCheckout();
   };
 
   if (!isOpen) return null;

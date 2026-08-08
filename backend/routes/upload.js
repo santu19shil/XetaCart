@@ -1,46 +1,47 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { authMiddleware, sellerOnly } = require('../middleware/auth');
+const { uploadImage, ensureBucket } = require('../config/storage');
 
 const router = express.Router();
 
-const uploadDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Use memory storage so uploads work on serverless (Vercel) — no disk writes.
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|gif|webp/;
     const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = filetypes.test((file.originalname || '').toLowerCase());
     if (mimetype && extname) {
       return cb(null, true);
     }
     cb(new Error('Only image files are allowed'));
-  }
+  },
 });
 
-router.post('/', authMiddleware, sellerOnly, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No image file uploaded' });
+// Ensure the storage bucket exists (idempotent).
+router.use(async (req, res, next) => {
+  await ensureBucket();
+  next();
+});
+
+// Upload a product image to Supabase Storage.
+router.post('/', authMiddleware, sellerOnly, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ message: 'No image file uploaded' });
+    }
+
+    const url = await uploadImage(req.file.buffer, req.file.originalname || 'image.png');
+    if (!url) {
+      return res.status(500).json({ message: 'Failed to upload image' });
+    }
+    res.json({ url });
+  } catch (error) {
+    console.error('Upload error:', error.message);
+    res.status(500).json({ message: 'Server error during upload' });
   }
-  const imageUrl = `/uploads/${req.file.filename}`;
-  res.json({ url: imageUrl });
 });
 
 module.exports = router;

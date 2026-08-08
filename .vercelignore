@@ -1,0 +1,26 @@
+# Dependencies are installed by Vercel
+node_modules/
+
+# Build output (Vercel rebuilds)
+frontend/dist/
+dist/
+
+# Local env files (set in Vercel dashboard instead)
+.env
+.env.*
+!.env.example
+
+# Local uploads (switched to Supabase Storage)
+backend/uploads/*
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

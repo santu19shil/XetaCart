@@ -59,7 +59,10 @@ export default function ProductCard({ product, index = 0, onLike }) {
           <span className="bg-deal-red text-white text-xs font-bold px-1.5 py-0.5 rounded">{product.discount}% off</span>
           <span className="text-deal-red text-xs font-semibold">Limited deal</span>
         </div>
-        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 leading-snug">{product.name}</h3>
+<h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1 leading-snug">{product.name}</h3>
+        {product.product_code && (
+          <div className="text-[0.65rem] text-gray-400 font-medium mb-2">Code: {product.product_code}</div>
+        )}
         <div className="flex items-baseline gap-2 mb-1 flex-wrap">
           <span className="text-lg font-bold text-gray-900">
             <sup className="text-xs">₹</sup>{product.price.toLocaleString('en-IN')}

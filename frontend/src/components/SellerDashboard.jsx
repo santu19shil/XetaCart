@@ -290,8 +290,9 @@ export default function SellerDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
+<tr>
                     <th className="px-4 py-3 font-semibold text-gray-700">Product</th>
+                    <th className="px-4 py-3 font-semibold text-gray-700">Code</th>
                     <th className="px-4 py-3 font-semibold text-gray-700">Category</th>
                     <th className="px-4 py-3 font-semibold text-gray-700">Price</th>
                     <th className="px-4 py-3 font-semibold text-gray-700">Stock</th>
@@ -307,6 +308,7 @@ export default function SellerDashboard() {
                           <span className="font-medium text-gray-900 line-clamp-1 max-w-xs">{product.name}</span>
                         </div>
                       </td>
+<td className="px-4 py-3 text-gray-500 font-mono text-xs">{product.product_code || '—'}</td>
                       <td className="px-4 py-3 text-gray-600">{product.category}</td>
                       <td className="px-4 py-3 font-semibold text-deal-red">₹{product.price.toLocaleString('en-IN')}</td>
                       <td className="px-4 py-3">

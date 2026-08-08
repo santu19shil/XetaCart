@@ -146,13 +146,30 @@ router.post('/', authMiddleware, sellerOnly, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, description, category, brand, price, mrp, stock, image_url, is_lightning, hot_percentage, free_delivery } = req.body;
+const { name, description, category, brand, price, mrp, stock, image_url, is_lightning, hot_percentage, free_delivery } = req.body;
     const discount = Math.round(((mrp - price) / mrp) * 100);
+
+// Generate a unique product code (XC-100001, XC-100002, ...)
+    // Use max(id) for a more reliable sequence than a row count.
+    const { data: maxData, error: countError } = await supabase
+      .from('products')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+
+    if (countError) {
+      return res.status(500).json({ message: countError.message });
+    }
+
+    const lastId = maxData?.[0]?.id ?? 0;
+    const nextNumber = lastId + 100000 + 1;
+    const product_code = `XC-${nextNumber}`;
 
     const { data, error } = await supabase
       .from('products')
       .insert({
         seller_id: req.user.id,
+        product_code,
         name,
         description: description || '',
         category,

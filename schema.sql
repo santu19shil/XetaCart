@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS products (
   id BIGSERIAL PRIMARY KEY,
+  product_code VARCHAR(50) UNIQUE,
   seller_id BIGINT NOT NULL REFERENCES users(id),
   name VARCHAR(500) NOT NULL,
   description TEXT,
@@ -50,3 +51,4 @@ CREATE TABLE IF NOT EXISTS cart_items (
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
 CREATE INDEX IF NOT EXISTS idx_cart_user ON cart_items(user_id);
+CREATE INDEX IF NOT EXISTS idx_products_product_code ON products(product_code);

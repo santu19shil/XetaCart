@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const supabase = require('../config/db');
+const { authMiddleware } = require('../middleware/auth');
 const { SELLER_EMAIL, SELLER_PASSWORD, SELLER_NAME, SELLER_PHONE } = require('../config/seller');
 
 const router = express.Router();
@@ -134,12 +135,48 @@ router.post('/login', [
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
 
     res.json({
       token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone },
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update the authenticated user's profile (name, phone, password)
+router.put('/profile', authMiddleware, [
+  body('name').optional().not().isEmpty().withMessage('Name cannot be empty'),
+  body('phone').optional().not().isEmpty().withMessage('Phone cannot be empty'),
+  body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { name, phone, password } = req.body;
+    const updates = { updated_at: new Date().toISOString() };
+
+    if (name !== undefined) updates.name = String(name).trim();
+    if (phone !== undefined) updates.phone = String(phone).trim();
+    if (password) updates.password_hash = await bcrypt.hash(password, 10);
+
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', req.user.id)
+      .select('id, name, email, role, phone')
+      .single();
+
+    if (error) {
+      return res.status(400).json({ message: error.message || 'Failed to update profile' });
+    }
+
+    res.json({ message: 'Profile updated successfully', user: data });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }

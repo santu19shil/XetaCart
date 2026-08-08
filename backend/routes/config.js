@@ -1,5 +1,5 @@
 const express = require('express');
-const { WHATSAPP_NUMBER, SELLER_NAME } = require('../config/seller');
+const { WHATSAPP_NUMBER, SELLER_NAME, STORE_ADDRESS, STORE_MAPS_URL, STORE_LAT, STORE_LNG, DELIVERY_RADIUS_KM, DELIVERY_CHARGE, FREE_DELIVERY_THRESHOLD, PAYMENT_NOTE } = require('../config/seller');
 
 const router = express.Router();
 
@@ -9,7 +9,14 @@ router.get('/', (req, res) => {
   res.json({
     sellerName: SELLER_NAME,
     whatsappNumber: WHATSAPP_NUMBER,
-    storeAddress: process.env.STORE_ADDRESS || 'Jalefa Bazar, Sabroom, South Tripura, 799145',
+storeAddress: STORE_ADDRESS,
+    storeMapsUrl: STORE_MAPS_URL,
+    storeLat: STORE_LAT,
+    storeLng: STORE_LNG,
+deliveryRadiusKm: DELIVERY_RADIUS_KM,
+    deliveryCharge: DELIVERY_CHARGE,
+    freeDeliveryThreshold: FREE_DELIVERY_THRESHOLD,
+    paymentNote: PAYMENT_NOTE,
   });
 });
 

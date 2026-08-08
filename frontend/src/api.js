@@ -32,6 +32,7 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  updateProfile: (data) => api.put('/auth/profile', data),
 };
 
 export const productsAPI = {
@@ -58,7 +59,10 @@ export const configAPI = {
 };
 
 export const uploadAPI = {
-  upload: (formData) => api.post('/upload', formData),
+  upload: (formData) =>
+    api.post('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 export default api;
