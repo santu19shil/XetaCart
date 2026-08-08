@@ -47,6 +47,12 @@ CREATE TABLE IF NOT EXISTS cart_items (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Disable Row Level Security (RLS) on all tables so the backend
+-- (using the service-role key) can read/write without extra policies.
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE products DISABLE ROW LEVEL SECURITY;
+ALTER TABLE cart_items DISABLE ROW LEVEL SECURITY;
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);

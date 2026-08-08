@@ -21,16 +21,16 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
 
   return (
     <nav className="gradient-dark sticky top-0 z-50 shadow-lg border-b border-gold/20">
-      <div className="max-w-[1400px] mx-auto px-4 py-2 flex items-center gap-4">
+<div className="max-w-[1400px] mx-auto px-2 sm:px-4 py-2 flex items-center gap-2 sm:gap-4">
         <Link to={isSeller ? '/seller' : '/'} className="flex items-center gap-2 flex-shrink-0">
-          <img src="/logo.png" alt="XetaCart" className="h-10 w-auto object-contain" />
-          <div className="hidden sm:block">
+          <img src="/logo.png" alt="XetaCart" className="h-8 sm:h-10 w-auto object-contain" />
+          <div className="hidden md:block">
             <div className="text-gold font-rajdhani font-bold text-xl tracking-wider leading-none">XetaCart</div>
             <div className="text-white/60 text-[0.6rem] font-semibold tracking-[0.25rem] uppercase">Shop more, Pay less</div>
           </div>
         </Link>
 
-        <div className="flex-1 max-w-2xl">
+        <div className="flex-1 min-w-0 max-w-2xl">
           <div className="flex bg-white rounded-md shadow-md shadow-orange/30 border-2 border-orange overflow-hidden">
             <select
               value={selectedCategory}
@@ -51,19 +51,19 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
               placeholder="Search products, brands and more..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="flex-1 border-none px-3 py-2 text-sm outline-none"
+              className="flex-1 border-none px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm outline-none min-w-0"
             />
-            <button className="bg-orange px-4 hover:bg-orange/90 transition-colors">
+            <button className="bg-orange px-2 sm:px-4 hover:bg-orange/90 transition-colors">
               🔍
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-white text-sm flex-shrink-0 ml-auto">
+        <div className="flex items-center gap-1 sm:gap-4 text-white text-sm flex-shrink-0 ml-auto">
           {user ? (
             <>
               {!isSeller && (
-                <button onClick={handleCartClick} className="relative flex items-center gap-1 hover:bg-white/10 px-2 py-1 rounded transition-colors">
+                <button onClick={handleCartClick} className="relative flex items-center gap-1 hover:bg-white/10 px-1 sm:px-2 py-1 rounded transition-colors">
                   🛒 <span className="hidden sm:inline">Cart</span>
                   {cartCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-orange text-dark text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">

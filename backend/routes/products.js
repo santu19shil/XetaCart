@@ -187,7 +187,41 @@ const { name, description, category, brand, price, mrp, stock, image_url, is_lig
       .single();
 
     if (error) {
-      return res.status(400).json({ message: error.message });
+      let message = error.message;
+      if (error.code === '42501' || /permission denied for relation/i.test(error.message || '')) {
+        message = 'Database permission denied. Disable Row Level Security (RLS) on the products table in Supabase, or use the SUPABASE_SERVICE_ROLE_KEY.';
+      } else if (error.code === '23505') {
+        message = 'A product with this code already exists. Please try again.';
+      } else if (/schema cache/i.test(error.message || '') || /Could not find the .* column/i.test(error.message || '')) {
+        const { data: retryData, error: retryError } = await supabase
+          .from('products')
+          .insert({
+            seller_id: req.user.id,
+            name,
+            description: description || '',
+            category,
+            brand: brand || '',
+            price,
+            mrp,
+            discount,
+            stock,
+            image_url: image_url || '',
+            is_lightning: is_lightning || false,
+            hot_percentage: hot_percentage || 0,
+            free_delivery: free_delivery || false,
+          })
+          .select()
+          .single();
+        if (retryError) {
+          message = retryError.message;
+          if (retryError.code === '42501' || /permission denied for relation/i.test(retryError.message || '')) {
+            message = 'Database permission denied. Disable Row Level Security (RLS) on the products table in Supabase, or use the SUPABASE_SERVICE_ROLE_KEY.';
+          }
+          return res.status(400).json({ message });
+        }
+        return res.status(201).json(retryData);
+      }
+      return res.status(400).json({ message });
     }
 
     res.status(201).json(data);

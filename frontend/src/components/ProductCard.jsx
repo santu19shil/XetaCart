@@ -31,7 +31,7 @@ export default function ProductCard({ product, index = 0, onLike }) {
         e.currentTarget.style.transform = '';
       }}
     >
-      <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+<div className="relative h-36 sm:h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
         {product.is_lightning && (
           <div className="absolute top-2 left-2 gradient-gold text-dark text-xs font-bold px-2 py-1 rounded shadow-lg shadow-gold/40 z-10 flex items-center gap-1">
             <Zap size={12} /> Lightning
@@ -40,7 +40,7 @@ export default function ProductCard({ product, index = 0, onLike }) {
         <img
           src={product.image_url || 'https://placehold.co/200x200/f0f4f8/999?text=No+Image'}
           alt={product.name}
-          className="w-32 h-32 object-contain relative z-[2] transition-all duration-300 hover:scale-110 drop-shadow-lg"
+          className="w-24 h-24 sm:w-32 sm:h-32 object-contain relative z-[2] transition-all duration-300 hover:scale-110 drop-shadow-lg"
           loading="lazy"
           onError={(e) => {
             e.target.src = 'https://placehold.co/200x200/f0f4f8/999?text=Image';
@@ -48,9 +48,10 @@ export default function ProductCard({ product, index = 0, onLike }) {
         />
         <button
           onClick={(e) => { e.stopPropagation(); onLike?.(product.id); }}
-          className="absolute top-2 right-2 bg-white/90 border-none rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:scale-125 transition-all z-10 backdrop-blur-sm"
+          className="absolute top-2 right-2 bg-white/90 border-none rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shadow-md hover:scale-125 transition-all z-10 backdrop-blur-sm"
         >
-          <Heart size={16} className="text-gray-400 hover:text-red-500" />
+          <Heart size={14} className="text-gray-400 hover:text-red-500 sm:hidden" />
+          <Heart size={16} className="text-gray-400 hover:text-red-500 hidden sm:block" />
         </button>
       </div>
 

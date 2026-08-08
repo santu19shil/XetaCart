@@ -75,7 +75,8 @@ export default function SellerDashboard() {
       fetchProducts();
     } catch (error) {
       console.error('Failed to save product', error);
-      alert('Failed to save product. Please try again.');
+      const message = error.response?.data?.message || 'Failed to save product. Please try again.';
+      alert(message);
     }
   };
 
@@ -134,11 +135,11 @@ export default function SellerDashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-900">My Products ({products.length})</h2>
+<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900">My Products ({products.length})</h2>
           <button
             onClick={() => navigate('/seller/add-product')}
-            className="gradient-gold text-dark px-4 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg shadow-gold/30 hover:scale-105 transition-all"
+            className="gradient-gold text-dark px-4 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg shadow-gold/30 hover:scale-105 transition-all w-full sm:w-auto justify-center"
           >
             <Plus size={18} /> Add Product
           </button>

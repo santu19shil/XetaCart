@@ -64,7 +64,8 @@ export default function AddProduct() {
       navigate('/seller');
     } catch (error) {
       console.error('Failed to create product', error);
-      alert('Failed to create product. Please try again.');
+      const message = error.response?.data?.message || 'Failed to create product. Please try again.';
+      alert(message);
     } finally {
       setLoading(false);
     }
