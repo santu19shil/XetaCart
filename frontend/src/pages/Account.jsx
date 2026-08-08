@@ -51,7 +51,6 @@ export default function Account() {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
   };
 
   return (

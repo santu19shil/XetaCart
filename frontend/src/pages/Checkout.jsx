@@ -48,6 +48,7 @@ export default function Checkout() {
     lines.push(deliveryMethod === 'delivery'
       ? `📍 *Delivery Address:* ${address}`
       : `🏪 *You can collect your order from:* ${storeAddress}`);
+    lines.push(`🗺️ *Store Location:* ${storeMapsUrl}`);
     lines.push('-----------------------------');
     lines.push('*Items Ordered:*');
     cart.forEach((item) => {

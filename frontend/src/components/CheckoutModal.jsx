@@ -12,6 +12,7 @@ export default function CheckoutModal({ isOpen, onClose }) {
   const [success, setSuccess] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('916033571851');
   const [storeAddress, setStoreAddress] = useState('Jalefa Bazar, Sabroom, South Tripura, 799145');
+  const [storeMapsUrl, setStoreMapsUrl] = useState('https://maps.app.goo.gl/ot4F6KvMi8ZVJi8c6');
   const { cart, cartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +33,9 @@ export default function CheckoutModal({ isOpen, onClose }) {
         if (response.data?.storeAddress) {
           setStoreAddress(response.data.storeAddress);
         }
+        if (response.data?.storeMapsUrl) {
+          setStoreMapsUrl(response.data.storeMapsUrl);
+        }
       } catch (error) {
         console.error('Failed to load store config', error);
       }
@@ -50,6 +54,7 @@ export default function CheckoutModal({ isOpen, onClose }) {
     lines.push(deliveryMethod === 'delivery'
       ? `📍 *Delivery Address:* ${address}`
       : `🏪 *You can collect your order from:* ${storeAddress}`);
+    lines.push(`🗺️ *Store Location:* ${storeMapsUrl}`);
     lines.push('-----------------------------');
     lines.push('*Items Ordered:*');
     cart.forEach((item) => {
