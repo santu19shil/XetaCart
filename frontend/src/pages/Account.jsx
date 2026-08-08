@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { syncUpdate } from '../services/sync';
 import { Save, User, Phone, Mail, Package, Home, LogOut, ArrowLeft } from 'lucide-react';
 
 export default function Account() {
@@ -31,13 +32,18 @@ export default function Account() {
     try {
       const data = { name: formData.name, phone: formData.phone };
       if (password) data.password = password;
-      await updateProfile(data);
+
+      await syncUpdate('users', user.id, data);
+
+      const updatedUser = { ...user, name: formData.name, phone: formData.phone };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
       setEditing(false);
       setPassword('');
       setMessage('✅ Profile updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (err) {
-      setMessage('❌ ' + (err.response?.data?.message || 'Failed to update profile'));
+      setMessage('❌ ' + (err.message || 'Failed to update profile'));
     } finally {
       setSaving(false);
     }
@@ -59,7 +65,7 @@ export default function Account() {
         </div>
 
         {message && (
-          <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+          <div className={`mb-4 p-3 rounded-lg text-sm ${message.startsWith('✅') ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
             {message}
           </div>
         )}

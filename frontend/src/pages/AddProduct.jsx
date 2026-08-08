@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { productsAPI, uploadAPI } from '../api';
+import { syncInsert } from '../services/sync';
 import { Upload, X, Save, ArrowLeft } from 'lucide-react';
 
 const CATEGORIES = [
@@ -38,8 +38,12 @@ export default function AddProduct() {
       return;
     }
     try {
-      const response = await productsAPI.getBrands(category);
-      setBrands(response.data);
+      const response = await fetch(`/api/products/brands?category=${encodeURIComponent(category)}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (!response.ok) throw new Error('Failed to fetch brands');
+      const data = await response.json();
+      setBrands(data);
     } catch (error) {
       console.error('Failed to fetch brands', error);
     }
@@ -60,12 +64,11 @@ export default function AddProduct() {
         stock: parseInt(formData.stock),
         hot_percentage: parseInt(formData.hot_percentage) || 0,
       };
-      await productsAPI.create(data);
+      await syncInsert('products', data);
       navigate('/seller');
     } catch (error) {
       console.error('Failed to create product', error);
-      const message = error.response?.data?.message || 'Failed to create product. Please try again.';
-      alert(message);
+      alert('Failed to create product: ' + (error.message || 'Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -78,8 +81,15 @@ export default function AddProduct() {
     try {
       const uploadData = new FormData();
       uploadData.append('image', file);
-      const response = await uploadAPI.upload(uploadData);
-      setFormData(prev => ({ ...prev, image_url: response.data.url }));
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: uploadData,
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      const result = await response.json();
+      setFormData(prev => ({ ...prev, image_url: result.url }));
     } catch (error) {
       console.error('Upload failed', error);
       alert('Image upload failed');

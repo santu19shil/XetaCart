@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { productsAPI, uploadAPI } from '../api';
+import { syncInsert, syncUpdate, syncDelete } from '../services/sync';
 import { Trash2, Edit, Plus, Upload, X } from 'lucide-react';
+
+const CATEGORIES = [
+  'Groceries',
+  'Gift Items',
+  'Kitchenware and Utilities',
+  'Toys',
+  'Household Essentials',
+  'Electronics and Electrical Appliances',
+  'Personal Care & Wellness',
+];
 
 export default function SellerDashboard() {
   const [products, setProducts] = useState([]);
@@ -9,6 +19,7 @@ export default function SellerDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
@@ -27,10 +38,15 @@ export default function SellerDashboard() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await productsAPI.getMyProducts();
-      setProducts(response.data);
+      const response = await fetch('/api/products/seller/my-products', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (!response.ok) throw new Error('Failed to fetch products');
+      const data = await response.json();
+      setProducts(data);
     } catch (error) {
       console.error('Failed to fetch products', error);
+      alert('Failed to load products. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -42,6 +58,7 @@ export default function SellerDashboard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
       const data = {
         ...formData,
@@ -52,9 +69,9 @@ export default function SellerDashboard() {
       };
 
       if (editingProduct) {
-        await productsAPI.update(editingProduct.id, data);
+        await syncUpdate('products', editingProduct.id, data);
       } else {
-        await productsAPI.create(data);
+        await syncInsert('products', data);
       }
 
       setShowForm(false);
@@ -75,8 +92,9 @@ export default function SellerDashboard() {
       fetchProducts();
     } catch (error) {
       console.error('Failed to save product', error);
-      const message = error.response?.data?.message || 'Failed to save product. Please try again.';
-      alert(message);
+      alert('Failed to save product: ' + (error.message || 'Please try again.'));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -101,10 +119,11 @@ export default function SellerDashboard() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
     try {
-      await productsAPI.delete(id);
+      await syncDelete('products', id);
       fetchProducts();
     } catch (error) {
       console.error('Failed to delete product', error);
+      alert('Failed to delete product. Please try again.');
     }
   };
 
@@ -115,8 +134,15 @@ export default function SellerDashboard() {
     try {
       const formData = new FormData();
       formData.append('image', file);
-      const response = await uploadAPI.upload(formData);
-      setFormData(prev => ({ ...prev, image_url: response.data.url }));
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      const result = await response.json();
+      setFormData(prev => ({ ...prev, image_url: result.url }));
     } catch (error) {
       console.error('Upload failed', error);
       alert('Image upload failed');
@@ -135,7 +161,7 @@ export default function SellerDashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
           <h2 className="text-lg sm:text-xl font-bold text-gray-900">My Products ({products.length})</h2>
           <button
             onClick={() => navigate('/seller/add-product')}
@@ -166,13 +192,17 @@ export default function SellerDashboard() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                <input
-                  type="text"
+                <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange"
                   required
-                />
+                >
+                  <option value="">Select a category</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
@@ -273,10 +303,10 @@ export default function SellerDashboard() {
                 </label>
               </div>
               <div className="md:col-span-2 flex gap-3">
-                <button type="submit" className="gradient-gold text-dark px-6 py-2 rounded-full font-bold shadow-lg shadow-gold/30 hover:scale-105 transition-all">
-                  {editingProduct ? 'Update Product' : 'Add Product'}
+                <button type="submit" disabled={saving} className="gradient-gold text-dark px-6 py-2 rounded-full font-bold shadow-lg shadow-gold/30 hover:scale-105 transition-all disabled:opacity-50">
+                  {saving ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
                 </button>
-                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                <button type="button" onClick={() => setShowForm(false)} disabled={saving} className="px-6 py-2 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50">
                   Cancel
                 </button>
               </div>
@@ -291,7 +321,7 @@ export default function SellerDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
-<tr>
+                  <tr>
                     <th className="px-4 py-3 font-semibold text-gray-700">Product</th>
                     <th className="px-4 py-3 font-semibold text-gray-700">Code</th>
                     <th className="px-4 py-3 font-semibold text-gray-700">Category</th>
@@ -309,7 +339,7 @@ export default function SellerDashboard() {
                           <span className="font-medium text-gray-900 line-clamp-1 max-w-xs">{product.name}</span>
                         </div>
                       </td>
-<td className="px-4 py-3 text-gray-500 font-mono text-xs">{product.product_code || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 font-mono text-xs">{product.product_code || '—'}</td>
                       <td className="px-4 py-3 text-gray-600">{product.category}</td>
                       <td className="px-4 py-3 font-semibold text-deal-red">₹{product.price.toLocaleString('en-IN')}</td>
                       <td className="px-4 py-3">
@@ -319,10 +349,10 @@ export default function SellerDashboard() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
-                          <button onClick={() => handleEdit(product)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
+                          <button onClick={() => handleEdit(product)} disabled={saving} className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50">
                             <Edit size={16} />
                           </button>
-                          <button onClick={() => handleDelete(product.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors">
+                          <button onClick={() => handleDelete(product.id)} disabled={saving} className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors disabled:opacity-50">
                             <Trash2 size={16} />
                           </button>
                         </div>

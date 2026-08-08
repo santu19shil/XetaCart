@@ -1,18 +1,25 @@
-import { Heart, ShoppingCart, Zap } from 'lucide-react';
+import { ShoppingCart, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
-export default function ProductCard({ product, index = 0, onLike }) {
+export default function ProductCard({ product, index = 0 }) {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
     await addToCart(product.id, 1);
   };
 
+  const handleClick = () => {
+    navigate(`/product/${product.id}`);
+  };
+
   return (
     <div
       className="card-3d bg-white rounded-xl overflow-hidden cursor-pointer animate-card-in relative"
       style={{ animationDelay: `${index * 0.06}s` }}
+      onClick={handleClick}
       onMouseMove={(e) => {
         const card = e.currentTarget;
         const rect = card.getBoundingClientRect();
@@ -31,7 +38,7 @@ export default function ProductCard({ product, index = 0, onLike }) {
         e.currentTarget.style.transform = '';
       }}
     >
-<div className="relative h-36 sm:h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+      <div className="relative h-36 sm:h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
         {product.is_lightning && (
           <div className="absolute top-2 left-2 gradient-gold text-dark text-xs font-bold px-2 py-1 rounded shadow-lg shadow-gold/40 z-10 flex items-center gap-1">
             <Zap size={12} /> Lightning
@@ -46,13 +53,6 @@ export default function ProductCard({ product, index = 0, onLike }) {
             e.target.src = 'https://placehold.co/200x200/f0f4f8/999?text=Image';
           }}
         />
-        <button
-          onClick={(e) => { e.stopPropagation(); onLike?.(product.id); }}
-          className="absolute top-2 right-2 bg-white/90 border-none rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shadow-md hover:scale-125 transition-all z-10 backdrop-blur-sm"
-        >
-          <Heart size={14} className="text-gray-400 hover:text-red-500 sm:hidden" />
-          <Heart size={16} className="text-gray-400 hover:text-red-500 hidden sm:block" />
-        </button>
       </div>
 
       <div className="p-3">
@@ -69,11 +69,6 @@ export default function ProductCard({ product, index = 0, onLike }) {
             <sup className="text-xs">₹</sup>{product.price.toLocaleString('en-IN')}
           </span>
           <span className="text-sm text-gray-500 line-through">₹{product.mrp.toLocaleString('en-IN')}</span>
-        </div>
-        <div className="flex items-center gap-1 mb-1 text-xs text-gold">
-          {'★'.repeat(Math.floor(product.rating || 0))}
-          {'☆'.repeat(5 - Math.floor(product.rating || 0))}
-          <span className="text-gray-400 ml-1">({product.reviews || 0})</span>
         </div>
         {product.free_delivery && (
           <div className="text-deal-green text-xs font-semibold mb-2">✓ FREE Delivery</div>

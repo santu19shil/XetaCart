@@ -23,7 +23,6 @@ const SORT_OPTIONS = [
 export default function Home({ searchQuery, selectedCategory, onCategoryChange }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [liked, setLiked] = useState({});
   const [heroItems, setHeroItems] = useState([]);
   const [heroIndex, setHeroIndex] = useState(0);
   const [sortBy, setSortBy] = useState('newest');
@@ -81,19 +80,15 @@ console.error('Failed to fetch hero items', error);
     return () => clearInterval(timer);
   }, [heroItems.length]);
 
-  const toggleLike = (id) => {
-    setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-const goToSlide = (index) => {
+  const goToSlide = (index) => {
     setHeroIndex(index);
   };
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-4">
-{heroItems.length > 0 && (
-        <div className="hero-banner rounded-xl mb-6 relative overflow-hidden" style={{ minHeight: 260 }}>
-          <div className="absolute mt-0 inset-0">
+      {heroItems.length > 0 && (
+        <div className="hero-banner rounded-xl mb-6 relative overflow-hidden bg-gray-900" style={{ minHeight: 260 }}>
+          <div className="absolute inset-0">
             <div className="h-full w-full hidden sm:block">
               {heroItems.map((item, idx) => (
                 <div
@@ -105,8 +100,11 @@ const goToSlide = (index) => {
                     src={item.product.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
                     alt={item.category}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart';
+                    }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
                 </div>
               ))}
             </div>
@@ -122,8 +120,11 @@ const goToSlide = (index) => {
                       src={item.product.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
                       alt={item.category}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart';
+                      }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
                   </div>
                 ))}
               </div>
@@ -212,7 +213,7 @@ const goToSlide = (index) => {
           ) : (
 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {products.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={i} onLike={toggleLike} />
+                <ProductCard key={p.id} product={p} index={i} />
               ))}
             </div>
           )}
