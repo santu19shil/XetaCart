@@ -73,18 +73,6 @@ export default function ProductCard({ product, index = 0 }) {
         {product.free_delivery && (
           <div className="text-deal-green text-xs font-semibold mb-2">✓ FREE Delivery</div>
         )}
-        <div className="mb-2">
-          <div className="text-xs text-deal-red font-semibold mb-1">🔥 {product.hot_percentage || 0}% claimed</div>
-          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${product.hot_percentage || 0}%`,
-                background: 'linear-gradient(90deg, var(--orange), var(--deal-red))'
-              }}
-            />
-          </div>
-        </div>
         <button
           onClick={handleAddToCart}
           className="w-full gradient-gold text-dark border-none rounded-full py-2 text-sm font-bold cursor-pointer transition-all hover:scale-105 shadow-md shadow-gold/30 active:scale-95"

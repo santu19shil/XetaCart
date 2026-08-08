@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { configAPI } from '../api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { syncUpdate } from '../services/sync';
 import { MapPin, MessageCircle, CheckCircle } from 'lucide-react';
 
 export default function Checkout() {
@@ -68,7 +69,7 @@ export default function Checkout() {
     return lines.join('\n');
   };
 
-  const handlePlaceOrder = (e) => {
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (!address.trim()) return;
     if (cart.length === 0) return;
@@ -77,6 +78,17 @@ export default function Checkout() {
     const message = buildOrderMessage();
     const encoded = encodeURIComponent(message);
     const waUrl = `https://wa.me/${whatsappNumber}?text=${encoded}`;
+
+    // Update stock in Supabase for each ordered item
+    const stockUpdates = cart.map((item) => {
+      const newStock = Math.max(0, (item.stock || 0) - item.quantity);
+      return syncUpdate('products', item.product_id, { stock: newStock }).catch((err) => {
+        console.error('Failed to update stock for product', item.product_id, err);
+      });
+    });
+
+    // Wait for stock updates to complete (fire and forget with catch)
+    await Promise.all(stockUpdates);
 
     // Clear the cart after building the message
     clearCart();

@@ -24,7 +24,6 @@ export default function AddProduct() {
     stock: '',
     image_url: '',
     is_lightning: false,
-    hot_percentage: 0,
     free_delivery: false,
   });
   const [brands, setBrands] = useState([]);
@@ -62,7 +61,6 @@ export default function AddProduct() {
         price: parseFloat(formData.price),
         mrp: parseFloat(formData.mrp),
         stock: parseInt(formData.stock),
-        hot_percentage: parseInt(formData.hot_percentage) || 0,
       };
       await syncInsert('products', data);
       navigate('/seller');
@@ -220,19 +218,6 @@ export default function AddProduct() {
                 placeholder="0"
                 min="0"
                 required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hot % (claimed)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={formData.hot_percentage}
-                onChange={(e) => setFormData({ ...formData, hot_percentage: e.target.value })}
-                className={inputClass}
-                placeholder="e.g., 75"
               />
             </div>
 

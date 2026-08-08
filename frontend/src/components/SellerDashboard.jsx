@@ -31,7 +31,6 @@ export default function SellerDashboard() {
     stock: '',
     image_url: '',
     is_lightning: false,
-    hot_percentage: 0,
     free_delivery: false,
   });
 
@@ -65,7 +64,6 @@ export default function SellerDashboard() {
         price: parseFloat(formData.price),
         mrp: parseFloat(formData.mrp),
         stock: parseInt(formData.stock),
-        hot_percentage: parseInt(formData.hot_percentage) || 0,
       };
 
       if (editingProduct) {
@@ -86,7 +84,6 @@ export default function SellerDashboard() {
         stock: '',
         image_url: '',
         is_lightning: false,
-        hot_percentage: 0,
         free_delivery: false,
       });
       fetchProducts();
@@ -110,7 +107,6 @@ export default function SellerDashboard() {
       stock: product.stock.toString(),
       image_url: product.image_url || '',
       is_lightning: product.is_lightning,
-      hot_percentage: product.hot_percentage || 0,
       free_delivery: product.free_delivery,
     });
     setShowForm(true);
@@ -241,17 +237,6 @@ export default function SellerDashboard() {
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange"
                   required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Hot %</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.hot_percentage}
-                  onChange={(e) => setFormData({ ...formData, hot_percentage: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange"
                 />
               </div>
               <div className="md:col-span-2">

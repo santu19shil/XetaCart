@@ -180,7 +180,6 @@ const { name, description, category, brand, price, mrp, stock, image_url, is_lig
         stock,
         image_url: image_url || '',
         is_lightning: is_lightning || false,
-        hot_percentage: hot_percentage || 0,
         free_delivery: free_delivery || false,
       })
       .select()
@@ -233,7 +232,7 @@ const { name, description, category, brand, price, mrp, stock, image_url, is_lig
 router.put('/:id', authMiddleware, sellerOnly, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, category, brand, price, mrp, stock, image_url, is_lightning, hot_percentage, free_delivery } = req.body;
+const { name, description, category, brand, price, mrp, stock, image_url, is_lightning, free_delivery } = req.body;
 
     const { data: productCheck, error: checkError } = await supabase
       .from('products')
@@ -264,7 +263,6 @@ router.put('/:id', authMiddleware, sellerOnly, async (req, res) => {
         stock,
         image_url: image_url || '',
         is_lightning: is_lightning || false,
-        hot_percentage: hot_percentage || 0,
         free_delivery: free_delivery || false,
         updated_at: new Date().toISOString(),
       })
