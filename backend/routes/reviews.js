@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const supabase = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
-const { recalculateProductRating } = require('../util/ratings');
+const { recalculateProductRating } = require('../utils/ratings');
 
 const router = express.Router();
 
