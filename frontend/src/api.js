@@ -91,4 +91,22 @@ export const uploadAPI = {
     }),
 };
 
+export const ordersAPI = {
+  create: (data) => api.post('/orders', data),
+  getMine: () => api.get('/orders/mine'),
+};
+
+export const adsAPI = {
+  getAll: () => api.get('/ads'),
+  getAllForSeller: () => api.get('/ads/all'),
+  create: (data) => api.post('/ads', data),
+  update: (id, data) => api.put(`/ads/${id}`, data),
+  delete: (id) => api.delete(`/ads/${id}`),
+};
+
+export const reviewsAPI = {
+  getByProduct: (productId) => api.get(`/reviews/product/${productId}`),
+  canReview: (productId) => api.get(`/reviews/product/${productId}/can-review`),
+  submit: (productId, data) => api.post(`/reviews/product/${productId}`, data),
+};
 export default api;

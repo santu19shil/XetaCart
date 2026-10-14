@@ -238,7 +238,7 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
-<!-- Reviews & Ratings section -->
+{/* Reviews & Ratings section */}
         <div id="reviews" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <MessageSquare size={20} className="text-orange" /> Customer Reviews

@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { MapPin, MessageCircle, CheckCircle } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import LoginPrompt from '../components/LoginPrompt';
 
 export default function Checkout() {
   const [address, setAddress] = useState('');
@@ -12,6 +13,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('919862979945');
   const [storeAddress, setStoreAddress] = useState('Jalefa Bazar, Sabroom, South Tripura, 799145');
   const [storeMapsUrl, setStoreMapsUrl] = useState('https://maps.app.goo.gl/ot4F6KvMi8ZVJi8c6');
@@ -74,6 +76,10 @@ export default function Checkout() {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
     if (deliveryMethod === 'delivery' && !address.trim()) return;
     if (cart.length === 0) return;
     setLoading(true);
@@ -111,9 +117,12 @@ export default function Checkout() {
     }
   };
 
-  if (!user) {
-    window.alert('Please log in or create an account before placing an order.');
-    navigate('/login');
+  const handleLoginSuccess = () => {
+    setShowLoginPrompt(false);
+  };
+
+  if (!user && !showLoginPrompt) {
+    setShowLoginPrompt(true);
     return null;
   }
 
@@ -139,126 +148,134 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Checkout</h1>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <form onSubmit={handlePlaceOrder} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <MapPin size={20} className="text-orange" /> Fulfillment Method
-              </h2>
+    <>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Checkout</h1>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <form onSubmit={handlePlaceOrder} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <MapPin size={20} className="text-orange" /> Fulfillment Method
+                </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('delivery')}
+                    className={`border-2 rounded-xl p-4 text-left transition-all ${deliveryMethod === 'delivery' ? 'border-orange bg-orange/10' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-gray-900">
+                      <span className="text-xl">🏠</span> Home Delivery
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Delivered to your address. Delivery charge confirmed on WhatsApp.</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('pickup')}
+                    className={`border-2 rounded-xl p-4 text-left transition-all ${deliveryMethod === 'pickup' ? 'border-orange bg-orange/10' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-gray-900">
+                      <span className="text-xl">🏪</span> Store Pickup
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Collect from our store</p>
+                  </button>
+                </div>
+
+                {deliveryMethod === 'delivery' ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Delivery Address *</label>
+                      <textarea
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="Enter your full delivery address..."
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange h-24"
+                        required
+                      />
+                    </div>
+                    <div className="bg-orange/10 border border-orange/20 rounded-lg p-3 flex items-start gap-2">
+                      <MapPin size={16} className="text-orange mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-orange-700">
+                        We deliver from our store at <strong>{storeAddress}</strong>. The delivery charge will be confirmed by the seller on WhatsApp after you place your order.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-2">
+                    <MapPin size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-blue-800 font-medium">📦 Collect from our store</p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        <strong>{storeAddress}</strong>
+                      </p>
+                      <a
+                        href={storeMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 mt-2 text-xs text-blue-700 underline hover:text-blue-900"
+                      >
+                        <MapPin size={12} /> Get Directions on Google Maps
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                <h2 className="text-lg font-bold text-gray-900 mt-6 mb-4 flex items-center gap-2">
+                  <MessageCircle size={20} className="text-deal-green" /> Order via WhatsApp
+                </h2>
+                <div className="border border-gray-200 rounded-lg p-4 text-center text-gray-500 text-sm">
+                  When you place the order, your item details and contact information will be sent to the seller on WhatsApp for confirmation of your order and delivery charge.
+                </div>
+
+                {orderError && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mt-4 text-sm">
+                    ❌ {orderError}
+                  </div>
+                )}
+
                 <button
-                  type="button"
-                  onClick={() => setDeliveryMethod('delivery')}
-                  className={`border-2 rounded-xl p-4 text-left transition-all ${deliveryMethod === 'delivery' ? 'border-orange bg-orange/10' : 'border-gray-200 hover:border-gray-300'}`}
+                  type="submit"
+                  disabled={loading || cart.length === 0}
+                  className="w-full bg-green-600 text-white py-3 rounded-full font-bold text-lg shadow-lg shadow-green-600/30 hover:scale-[1.02] hover:bg-green-700 transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <div className="flex items-center gap-2 font-semibold text-gray-900">
-                    <span className="text-xl">🏠</span> Home Delivery
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">Delivered to your address. Delivery charge confirmed on WhatsApp.</p>
+                  <MessageCircle size={20} />
+                  {loading ? 'Processing...' : `Order via WhatsApp - Item Total ₹${cartTotal.toLocaleString('en-IN')}`}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setDeliveryMethod('pickup')}
-                  className={`border-2 rounded-xl p-4 text-left transition-all ${deliveryMethod === 'pickup' ? 'border-orange bg-orange/10' : 'border-gray-200 hover:border-gray-300'}`}
-                >
-                  <div className="flex items-center gap-2 font-semibold text-gray-900">
-                    <span className="text-xl">🏪</span> Store Pickup
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">Collect from our store</p>
-                </button>
-              </div>
+              </form>
+            </div>
 
-              {deliveryMethod === 'delivery' ? (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Delivery Address *</label>
-                    <textarea
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Enter your full delivery address..."
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange h-24"
-                      required
-                    />
-                  </div>
-                  <div className="bg-orange/10 border border-orange/20 rounded-lg p-3 flex items-start gap-2">
-                    <MapPin size={16} className="text-orange mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-orange-700">
-                      We deliver from our store at <strong>{storeAddress}</strong>. The delivery charge will be confirmed by the seller on WhatsApp after you place your order.
-                    </p>
-                  </div>
+            <div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
+                <div className="space-y-3 mb-4">
+                  {cart.map((item) => (
+                    <div key={item.cart_item_id} className="flex justify-between text-sm">
+                      <span className="text-gray-600 truncate flex-1 mr-2">{item.name} x{item.quantity}</span>
+                      <span className="font-medium">₹{(Number(item.price) * item.quantity).toLocaleString('en-IN')}</span>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-2">
-                  <MapPin size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm text-blue-800 font-medium">📦 Collect from our store</p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      <strong>{storeAddress}</strong>
-                    </p>
-                    <a
-                      href={storeMapsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 mt-2 text-xs text-blue-700 underline hover:text-blue-900"
-                    >
-                      <MapPin size={12} /> Get Directions on Google Maps
-                    </a>
-                  </div>
+                <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-lg">
+                  <span>Item Total</span>
+                  <span className="text-deal-red">₹{cartTotal.toLocaleString('en-IN')}</span>
                 </div>
-              )}
-
-              <h2 className="text-lg font-bold text-gray-900 mt-6 mb-4 flex items-center gap-2">
-                <MessageCircle size={20} className="text-deal-green" /> Order via WhatsApp
-              </h2>
-              <div className="border border-gray-200 rounded-lg p-4 text-center text-gray-500 text-sm">
-                When you place the order, your item details and contact information will be sent to the seller on WhatsApp for confirmation of your order and delivery charge.
+                <p className="text-xs text-gray-500 mt-3 bg-orange/10 border border-orange/20 rounded-lg p-2">
+                  {deliveryMethod === 'delivery'
+                    ? '🚚 Delivery charge will be confirmed by the seller on WhatsApp. The final total will be shared after confirmation.'
+                    : '🏪 No delivery charge (Store Pickup). Pay at the store (cash or QR).'}
+                </p>
               </div>
-
-              {orderError && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mt-4 text-sm">
-                  ❌ {orderError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || cart.length === 0}
-                className="w-full bg-green-600 text-white py-3 rounded-full font-bold text-lg shadow-lg shadow-green-600/30 hover:scale-[1.02] hover:bg-green-700 transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <MessageCircle size={20} />
-                {loading ? 'Processing...' : `Order via WhatsApp - Item Total ₹${cartTotal.toLocaleString('en-IN')}`}
-              </button>
-            </form>
-          </div>
-
-          <div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
-              <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
-              <div className="space-y-3 mb-4">
-                {cart.map((item) => (
-                  <div key={item.cart_item_id} className="flex justify-between text-sm">
-                    <span className="text-gray-600 truncate flex-1 mr-2">{item.name} x{item.quantity}</span>
-                    <span className="font-medium">₹{(Number(item.price) * item.quantity).toLocaleString('en-IN')}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-lg">
-                <span>Item Total</span>
-                <span className="text-deal-red">₹{cartTotal.toLocaleString('en-IN')}</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-3 bg-orange/10 border border-orange/20 rounded-lg p-2">
-                {deliveryMethod === 'delivery'
-                  ? '🚚 Delivery charge will be confirmed by the seller on WhatsApp. The final total will be shared after confirmation.'
-                  : '🏪 No delivery charge (Store Pickup). Pay at the store (cash or QR).'}
-              </p>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <LoginPrompt
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onSuccess={handleLoginSuccess}
+      />
+    </>
   );
 }

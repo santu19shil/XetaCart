@@ -14,6 +14,9 @@ const productRoutes = require('./routes/products');
 const cartRoutes = require('./routes/cart');
 const uploadRoutes = require('./routes/upload');
 const configRoutes = require('./routes/config');
+const orderRoutes = require('./routes/orders');
+const adRoutes = require('./routes/ads');
+const reviewRoutes = require('./routes/reviews');
 const { SELLER_EMAIL, SELLER_PASSWORD, SELLER_NAME, SELLER_PHONE } = require('./config/seller');
 
 const app = express();
@@ -49,6 +52,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/ads', adRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'XetaCart API is running' });

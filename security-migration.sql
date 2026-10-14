@@ -9,3 +9,6 @@ ALTER TABLE IF EXISTS public.advertisements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.reviews ENABLE ROW LEVEL SECURITY;
+-- Prevent anonymous and signed-in API roles from invoking this elevated RPC.
+REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon, authenticated;
