@@ -6,6 +6,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
+  timeout: 10000,
 });
 
 let isRefreshing = false;
@@ -26,7 +27,17 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    
+    // Handle network errors (backend not running)
+    if (!error.response) {
+      console.error('Network error - backend may not be running:', error.message);
+      return Promise.reject(error);
+    }
+
+    // Don't retry refresh endpoint itself to avoid infinite loop
+    const isRefreshRequest = originalRequest.url?.includes('/auth/refresh');
+    
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
