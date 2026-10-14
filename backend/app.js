@@ -5,6 +5,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const supabase = require('./config/db');
 const authRoutes = require('./routes/auth');
@@ -16,15 +18,30 @@ const { SELLER_EMAIL, SELLER_PASSWORD, SELLER_NAME, SELLER_PHONE } = require('./
 
 const app = express();
 
-// Allow requests from any origin (the frontend is served from Vercel).
-// In production you can restrict this to your Vercel domain.
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173'];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://*.supabase.co'],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoutes);
@@ -37,8 +54,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'XetaCart API is running' });
 });
 
-// Ensure the predefined seller account exists in Supabase on startup.
-// For serverless, this runs on each cold start (idempotent; cheap because it just checks).
 const ensureSeller = async () => {
   try {
     const { data, error } = await supabase
@@ -48,13 +63,12 @@ const ensureSeller = async () => {
       .maybeSingle();
 
     if (error) {
-      // Table may not exist yet — log but don't crash.
       console.error('Error checking seller account:', error.message);
       return;
     }
 
     if (!data) {
-      const hashedPassword = await bcrypt.hash(SELLER_PASSWORD, 10);
+      const hashedPassword = await bcrypt.hash(SELLER_PASSWORD, 12);
       const { error: insertError } = await supabase.from('users').insert({
         name: SELLER_NAME,
         email: SELLER_EMAIL,

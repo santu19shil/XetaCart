@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { configAPI, productsAPI } from '../api';
+import { configAPI, ordersAPI } from '../api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { MapPin, MessageCircle, CheckCircle } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 export default function Checkout() {
   const [address, setAddress] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState('delivery');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [whatsappNumber, setWhatsappNumber] = useState('916033571851');
+  const [orderError, setOrderError] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('919862979945');
   const [storeAddress, setStoreAddress] = useState('Jalefa Bazar, Sabroom, South Tripura, 799145');
   const [storeMapsUrl, setStoreMapsUrl] = useState('https://maps.app.goo.gl/ot4F6KvMi8ZVJi8c6');
   const { cart, cartTotal, clearCart } = useCart();
@@ -43,7 +45,9 @@ export default function Checkout() {
     lines.push('-----------------------------');
     lines.push(`👤 *Name:* ${user?.name || ''}`);
     lines.push(`📞 *Phone:* ${user?.phone || ''}`);
-    lines.push(`📧 *Email:* ${user?.email || ''}`);
+    const maskedEmail = user?.email?.replace(/(.{2}).*(@.*)/, '$1***$2') || '';
+    lines.push(`📧 *Email:* ${maskedEmail}`);
+    lines.push(`🆔 *Customer ID:* ${user?.customer_id || '—'}`);
     lines.push(` *Fulfillment Method:* ${deliveryMethod === 'delivery' ? 'Home Delivery' : 'Store Pickup'}`);
     lines.push(deliveryMethod === 'delivery'
       ? `📍 *Delivery Address:* ${address}`
@@ -70,36 +74,45 @@ export default function Checkout() {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    if (!address.trim()) return;
+    if (deliveryMethod === 'delivery' && !address.trim()) return;
     if (cart.length === 0) return;
     setLoading(true);
+    setOrderError('');
 
-    const message = buildOrderMessage();
-    const encoded = encodeURIComponent(message);
-    const waUrl = `https://wa.me/${whatsappNumber}?text=${encoded}`;
+    try {
+      const sanitizedAddress = DOMPurify.sanitize(address.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
 
-    // Update stock in Supabase for each ordered item
-    const stockUpdates = cart.map((item) => {
-      const newStock = Math.max(0, (item.stock || 0) - item.quantity);
-      return productsAPI.updateStock(item.product_id, newStock).catch((err) => {
-        console.error('Failed to update stock for product', item.product_id, err);
+      const items = cart.map((item) => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+      }));
+
+      await ordersAPI.create({
+        items,
+        delivery_method: deliveryMethod,
+        delivery_address: deliveryMethod === 'delivery' ? sanitizedAddress : '',
+        store_address: storeAddress,
       });
-    });
 
-    // Wait for stock updates to complete (fire and forget with catch)
-    await Promise.all(stockUpdates);
+      const message = buildOrderMessage();
+      const encoded = encodeURIComponent(message);
+      const waUrl = `https://wa.me/${whatsappNumber}?text=${encoded}`;
 
-    // Clear the cart after building the message
-    clearCart();
+      clearCart();
 
-    // Open WhatsApp with the order details
-    window.open(waUrl, '_blank');
+      window.open(waUrl, '_blank');
 
-    setSuccess(true);
-    setLoading(false);
+      setSuccess(true);
+      setLoading(false);
+    } catch (error) {
+      console.error('Failed to place order', error);
+      setOrderError(error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to place your order. Please try again.');
+      setLoading(false);
+    }
   };
 
   if (!user) {
+    window.alert('Please log in or create an account before placing an order.');
     navigate('/login');
     return null;
   }
@@ -204,6 +217,12 @@ export default function Checkout() {
               <div className="border border-gray-200 rounded-lg p-4 text-center text-gray-500 text-sm">
                 When you place the order, your item details and contact information will be sent to the seller on WhatsApp for confirmation of your order and delivery charge.
               </div>
+
+              {orderError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mt-4 text-sm">
+                  ❌ {orderError}
+                </div>
+              )}
 
               <button
                 type="submit"

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -7,6 +8,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const { login, register } = useAuth();
@@ -19,7 +21,7 @@ const handleSubmit = async (e) => {
       let loggedInUser;
       if (isRegister) {
         // Buyers create an account (role is forced to 'customer' on the backend)
-        loggedInUser = await register(name, email, password, 'customer', phone);
+        loggedInUser = await register(name, email, password, phone);
       } else {
         loggedInUser = await login(email, password);
       }
@@ -63,7 +65,12 @@ const handleSubmit = async (e) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange" required minLength={6} />
+              <div className="relative">
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-12 text-sm focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange" required minLength={6} />
+                <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-800" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             {isRegister && (

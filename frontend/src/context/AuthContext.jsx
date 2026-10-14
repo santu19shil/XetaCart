@@ -8,48 +8,40 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    if (token && userData) {
+    const initAuth = async () => {
       try {
-        setUser(JSON.parse(userData));
+        const response = await authAPI.refresh();
+        setUser(response.data.user);
       } catch (error) {
-        console.error('Failed to parse user data from localStorage', error);
-        localStorage.removeItem('user');
+        // No valid session
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+    initAuth();
   }, []);
 
   const login = async (email, password) => {
     const response = await authAPI.login({ email, password });
-    const { token, user } = response.data;
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    setUser(user);
-    return user;
+    setUser(response.data.user);
+    return response.data.user;
   };
 
-  const register = async (name, email, password, role, phone) => {
-    const response = await authAPI.register({ name, email, password, role, phone });
-    const { token, user } = response.data;
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    setUser(user);
-    return user;
+  const register = async (name, email, password, phone) => {
+    const response = await authAPI.register({ name, email, password, phone });
+    setUser(response.data.user);
+    return response.data.user;
   };
 
-const updateProfile = async (data) => {
+  const updateProfile = async (data) => {
     const response = await authAPI.updateProfile(data);
     const updatedUser = { ...user, ...response.data.user };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
     return updatedUser;
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const logout = async () => {
+    await authAPI.logout();
     setUser(null);
     window.location.href = '/';
   };

@@ -1,13 +1,21 @@
 import { ShoppingCart, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import RatingStars from './RatingStars';
 
 export default function ProductCard({ product, index = 0 }) {
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
+    if (!user) {
+      window.alert('Please log in or create an account before ordering.');
+      navigate('/login');
+      return;
+    }
     await addToCart(product.id, 1);
   };
 
@@ -64,6 +72,12 @@ export default function ProductCard({ product, index = 0 }) {
         {product.product_code && (
           <div className="text-[0.65rem] text-gray-400 font-medium mb-2">Code: {product.product_code}</div>
         )}
+        <div className="flex items-center justify-between mb-1">
+          <RatingStars rating={product.rating || 0} size={12} />
+          {product.reviews ? (
+            <span className="text-[0.65rem] text-gray-400">({product.reviews})</span>
+          ) : null}
+        </div>
         <div className="flex items-baseline gap-2 mb-1 flex-wrap">
           <span className="text-lg font-bold text-gray-900">
             <sup className="text-xs">₹</sup>{product.price.toLocaleString('en-IN')}

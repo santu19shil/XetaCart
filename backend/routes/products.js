@@ -1,12 +1,36 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, query } = require('express-validator');
 const supabase = require('../config/db');
 const { authMiddleware, sellerOnly } = require('../middleware/auth');
+const { handleError } = require('../utils/errors');
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+const sanitizeSearch = (input) => {
+  if (!input) return '';
+  return String(input).replace(/[%_]/g, '\\$&').trim();
+};
+
+const sanitizeText = (input, maxLen = 500) => {
+  if (!input) return '';
+  return String(input).trim().slice(0, maxLen);
+};
+
+router.get('/', [
+  query('category').optional().isString().trim(),
+  query('search').optional().isString().trim(),
+  query('minPrice').optional().isFloat({ min: 0 }),
+  query('maxPrice').optional().isFloat({ min: 0 }),
+  query('brand').optional().isString().trim(),
+  query('limit').optional().isInt({ min: 1, max: 100 }),
+  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'popularity'])
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { category, search, minPrice, maxPrice, brand, limit, sort } = req.query;
 
     let query = supabase
@@ -15,19 +39,20 @@ router.get('/', async (req, res) => {
       .gt('stock', 0);
 
     if (category) {
-      query = query.ilike('category', `%${category}%`);
+      query = query.ilike('category', `%${sanitizeSearch(category)}%`);
     }
     if (search) {
-      query = query.or(`name.ilike.%${search}%,brand.ilike.%${search}%`);
+      const safeSearch = sanitizeSearch(search);
+      query = query.or(`name.ilike.%${safeSearch}%,brand.ilike.%${safeSearch}%`);
     }
     if (minPrice) {
-      query = query.gte('price', minPrice);
+      query = query.gte('price', parseFloat(minPrice));
     }
     if (maxPrice) {
-      query = query.lte('price', maxPrice);
+      query = query.lte('price', parseFloat(maxPrice));
     }
     if (brand) {
-      query = query.ilike('brand', `%${brand}%`);
+      query = query.ilike('brand', `%${sanitizeSearch(brand)}%`);
     }
 
     switch (sort) {
@@ -53,7 +78,8 @@ router.get('/', async (req, res) => {
 
     const { data, error } = await query;
     if (error) {
-      return res.status(500).json({ message: error.message });
+      console.error('Products fetch error:', error.message);
+      return handleError(error, res);
     }
 
     const products = (data || []).map((p) => ({
@@ -64,7 +90,7 @@ router.get('/', async (req, res) => {
 
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 
@@ -76,18 +102,25 @@ router.get('/categories', async (req, res) => {
       .gt('stock', 0);
 
     if (error) {
-      return res.status(500).json({ message: error.message });
+      return handleError(error, res);
     }
 
     const categories = [...new Set((data || []).map((r) => r.category))].sort();
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 
-router.get('/brands', async (req, res) => {
+router.get('/brands', [
+  query('category').optional().isString().trim()
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { category } = req.query;
     let query = supabase
       .from('products')
@@ -97,18 +130,18 @@ router.get('/brands', async (req, res) => {
       .not('brand', 'is', null);
 
     if (category) {
-      query = query.ilike('category', `%${category}%`);
+      query = query.ilike('category', `%${sanitizeSearch(category)}%`);
     }
 
     const { data, error } = await query;
     if (error) {
-      return res.status(500).json({ message: error.message });
+      return handleError(error, res);
     }
 
     const brands = [...new Set((data || []).map((r) => r.brand).filter(Boolean))].sort();
     res.json(brands);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 
@@ -121,7 +154,7 @@ router.get('/:id', async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      return res.status(500).json({ message: error.message });
+      return handleError(error, res);
     }
     if (!data) {
       return res.status(404).json({ message: 'Product not found' });
@@ -129,16 +162,22 @@ router.get('/:id', async (req, res) => {
 
     res.json({ ...data, seller_name: data.users?.name || null, users: undefined });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 
 router.post('/', authMiddleware, sellerOnly, [
-  body('name').not().isEmpty().withMessage('Product name is required'),
-  body('category').not().isEmpty().withMessage('Category is required'),
+  body('name').trim().notEmpty().withMessage('Product name is required'),
+  body('category').trim().notEmpty().withMessage('Category is required'),
   body('price').isFloat({ min: 0 }).withMessage('Valid price is required'),
   body('mrp').isFloat({ min: 0 }).withMessage('Valid MRP is required'),
-  body('stock').isInt({ min: 0 }).withMessage('Valid stock is required')
+  body('stock').isInt({ min: 0 }).withMessage('Valid stock is required'),
+  body('description').optional().isString(),
+  body('brand').optional().isString().trim(),
+  body('image_url').optional().isString(),
+  body('is_lightning').optional().isBoolean(),
+  body('hot_percentage').optional().isInt({ min: 0, max: 100 }),
+  body('free_delivery').optional().isBoolean()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -146,11 +185,9 @@ router.post('/', authMiddleware, sellerOnly, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-const { name, description, category, brand, price, mrp, stock, image_url, is_lightning, hot_percentage, free_delivery } = req.body;
+    const { name, description, category, brand, price, mrp, stock, image_url, is_lightning, hot_percentage, free_delivery } = req.body;
     const discount = Math.round(((mrp - price) / mrp) * 100);
 
-// Generate a unique product code (XC-100001, XC-100002, ...)
-    // Use max(id) for a more reliable sequence than a row count.
     const { data: maxData, error: countError } = await supabase
       .from('products')
       .select('id')
@@ -158,7 +195,7 @@ const { name, description, category, brand, price, mrp, stock, image_url, is_lig
       .limit(1);
 
     if (countError) {
-      return res.status(500).json({ message: countError.message });
+      return handleError(countError, res);
     }
 
     const lastId = maxData?.[0]?.id ?? 0;
@@ -170,69 +207,47 @@ const { name, description, category, brand, price, mrp, stock, image_url, is_lig
       .insert({
         seller_id: req.user.id,
         product_code,
-        name,
-        description: description || '',
-        category,
-        brand: brand || '',
+        name: sanitizeText(name),
+        description: sanitizeText(description || ''),
+        category: sanitizeText(category),
+        brand: sanitizeText(brand || ''),
         price,
         mrp,
         discount,
         stock,
         image_url: image_url || '',
         is_lightning: is_lightning || false,
+        hot_percentage: hot_percentage || 0,
         free_delivery: free_delivery || false,
       })
       .select()
       .single();
 
     if (error) {
-      let message = error.message;
-      if (error.code === '42501' || /permission denied for relation/i.test(error.message || '')) {
-        message = 'Database permission denied. Disable Row Level Security (RLS) on the products table in Supabase, or use the SUPABASE_SERVICE_ROLE_KEY.';
-      } else if (error.code === '23505') {
-        message = 'A product with this code already exists. Please try again.';
-      } else if (/schema cache/i.test(error.message || '') || /Could not find the .* column/i.test(error.message || '')) {
-        const { data: retryData, error: retryError } = await supabase
-          .from('products')
-          .insert({
-            seller_id: req.user.id,
-            name,
-            description: description || '',
-            category,
-            brand: brand || '',
-            price,
-            mrp,
-            discount,
-            stock,
-            image_url: image_url || '',
-            is_lightning: is_lightning || false,
-            hot_percentage: hot_percentage || 0,
-            free_delivery: free_delivery || false,
-          })
-          .select()
-          .single();
-        if (retryError) {
-          message = retryError.message;
-          if (retryError.code === '42501' || /permission denied for relation/i.test(retryError.message || '')) {
-            message = 'Database permission denied. Disable Row Level Security (RLS) on the products table in Supabase, or use the SUPABASE_SERVICE_ROLE_KEY.';
-          }
-          return res.status(400).json({ message });
-        }
-        return res.status(201).json(retryData);
-      }
-      return res.status(400).json({ message });
+      return handleError(error, res);
     }
 
     res.status(201).json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 
-router.put('/:id', authMiddleware, sellerOnly, async (req, res) => {
+router.put('/:id', authMiddleware, sellerOnly, [
+  body('name').optional().trim().notEmpty().withMessage('Product name cannot be empty'),
+  body('category').optional().trim().notEmpty().withMessage('Category cannot be empty'),
+  body('price').optional().isFloat({ min: 0 }).withMessage('Valid price required'),
+  body('mrp').optional().isFloat({ min: 0 }).withMessage('Valid MRP required'),
+  body('stock').optional().isInt({ min: 0 }).withMessage('Valid stock required')
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { id } = req.params;
-const { name, description, category, brand, price, mrp, stock, image_url, is_lightning, free_delivery } = req.body;
+    const { name, description, category, brand, price, mrp, stock, image_url, is_lightning, free_delivery } = req.body;
 
     const { data: productCheck, error: checkError } = await supabase
       .from('products')
@@ -242,7 +257,7 @@ const { name, description, category, brand, price, mrp, stock, image_url, is_lig
       .maybeSingle();
 
     if (checkError) {
-      return res.status(500).json({ message: checkError.message });
+      return handleError(checkError, res);
     }
     if (!productCheck) {
       return res.status(404).json({ message: 'Product not found or not authorized' });
@@ -253,10 +268,10 @@ const { name, description, category, brand, price, mrp, stock, image_url, is_lig
     const { data, error } = await supabase
       .from('products')
       .update({
-        name,
-        description: description || '',
-        category,
-        brand: brand || '',
+        name: name ? sanitizeText(name) : undefined,
+        description: description !== undefined ? sanitizeText(description || '') : undefined,
+        category: category ? sanitizeText(category) : undefined,
+        brand: brand !== undefined ? sanitizeText(brand || '') : undefined,
         price,
         mrp,
         discount,
@@ -271,12 +286,12 @@ const { name, description, category, brand, price, mrp, stock, image_url, is_lig
       .single();
 
     if (error) {
-      return res.status(400).json({ message: error.message });
+      return handleError(error, res);
     }
 
     res.json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 
@@ -292,14 +307,14 @@ router.delete('/:id', authMiddleware, sellerOnly, async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      return res.status(500).json({ message: error.message });
+      return handleError(error, res);
     }
     if (!data) {
       return res.status(404).json({ message: 'Product not found or not authorized' });
     }
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 
@@ -312,23 +327,26 @@ router.get('/seller/my-products', authMiddleware, sellerOnly, async (req, res) =
       .order('created_at', { ascending: false });
 
     if (error) {
-      return res.status(500).json({ message: error.message });
+      return handleError(error, res);
     }
 
     res.json(data || []);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 
-router.post('/:id/stock', authMiddleware, async (req, res) => {
+router.post('/:id/stock', authMiddleware, sellerOnly, [
+  body('stock').isInt({ min: 0 }).withMessage('Valid stock quantity is required')
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { id } = req.params;
     const { stock } = req.body;
-
-    if (typeof stock !== 'number' || stock < 0) {
-      return res.status(400).json({ message: 'Valid stock quantity is required' });
-    }
 
     const { data, error } = await supabase
       .from('products')
@@ -338,12 +356,12 @@ router.post('/:id/stock', authMiddleware, async (req, res) => {
       .single();
 
     if (error) {
-      return res.status(500).json({ message: error.message });
+      return handleError(error, res);
     }
 
     res.json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    handleError(error, res);
   }
 });
 

@@ -1,2 +1,0 @@
-# XetaCart – E-Commerce Platform
-

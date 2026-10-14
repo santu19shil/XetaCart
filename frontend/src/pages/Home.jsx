@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { productsAPI } from '../api';
+import { productsAPI, adsAPI } from '../api';
 import { useCart } from '../context/CartContext';
 
 const CATEGORIES = [
@@ -24,9 +25,18 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [heroItems, setHeroItems] = useState([]);
+  const [ads, setAds] = useState([]);
   const [heroIndex, setHeroIndex] = useState(0);
   const [sortBy, setSortBy] = useState('newest');
   const { cartCount } = useCart();
+  const navigate = useNavigate();
+
+  // The hero carousel shows seller ads when they exist, otherwise it falls
+  // back to one random product per category.
+  const slides =
+    ads.length > 0
+      ? ads.map((ad) => ({ type: 'ad', ...ad }))
+      : heroItems.map((item) => ({ type: 'category', ...item }));
 
   const applyFilters = async () => {
     setLoading(true);
@@ -60,71 +70,101 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
       );
       setHeroItems(results.filter(Boolean));
     } catch (error) {
-console.error('Failed to fetch hero items', error);
+      console.error('Failed to fetch hero items', error);
+    }
+  };
+
+  const fetchAds = async () => {
+    try {
+      const response = await adsAPI.getAll();
+      setAds(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch ads', error);
+    }
+  };
+
+  const onHeroAction = (slide) => {
+    if (slide.type === 'ad') {
+      if (slide.product_id) {
+        navigate(`/product/${slide.product_id}`);
+      } else {
+        document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else if (slide.type === 'category') {
+      onCategoryChange(slide.category);
     }
   };
 
   useEffect(() => {
     applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedCategory, sortBy]);
 
   useEffect(() => {
     fetchHeroItems();
+    fetchAds();
   }, []);
 
+  // Reset the slide index whenever the slide set changes.
   useEffect(() => {
-    if (heroItems.length <= 1) return;
+    setHeroIndex(0);
+  }, [slides.length]);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
     const timer = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % heroItems.length);
-    }, 3500);
+      setHeroIndex((prev) => (prev + 1) % slides.length);
+    }, 4000);
     return () => clearInterval(timer);
-  }, [heroItems.length]);
+  }, [slides.length]);
 
   const goToSlide = (index) => {
     setHeroIndex(index);
   };
 
+  const currentSlide = slides.length > 0 ? slides[heroIndex % slides.length] : null;
+
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-4">
-      {heroItems.length > 0 && (
+{slides.length > 0 && currentSlide && (
         <div className="hero-banner rounded-xl mb-6 relative overflow-hidden bg-gray-900" style={{ minHeight: 260 }}>
           <div className="absolute inset-0">
             <div className="h-full w-full hidden sm:block">
-              {heroItems.map((item, idx) => (
+              {slides.map((slide, idx) => (
                 <div
-                  key={item.category}
+                  key={slide.id || slide.category || idx}
                   className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-                  style={{ opacity: idx === heroIndex ? 1 : 0 }}
+                  style={{ opacity: idx === heroIndex % slides.length ? 1 : 0 }}
                 >
                   <img
-                    src={item.product.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
-                    alt={item.category}
+                    src={slide.type === 'ad' ? slide.image_url : slide.product?.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
+                    alt={slide.type === 'ad' ? slide.title : slide.category}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.src = 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
                 </div>
               ))}
             </div>
             <div className="h-full w-full sm:hidden">
               <div className="relative h-full w-full overflow-hidden">
-                {heroItems.map((item, idx) => (
+                {slides.map((slide, idx) => (
                   <div
-                    key={item.category}
+                    key={slide.id || slide.category || idx}
                     className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-                    style={{ opacity: idx === heroIndex ? 1 : 0 }}
+                    style={{ opacity: idx === heroIndex % slides.length ? 1 : 0 }}
                   >
                     <img
-                      src={item.product.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
-                      alt={item.category}
+                      src={slide.type === 'ad' ? slide.image_url : slide.product?.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
+                      alt={slide.type === 'ad' ? slide.title : slide.category}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.src = 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart';
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
                   </div>
                 ))}
               </div>
@@ -133,37 +173,40 @@ console.error('Failed to fetch hero items', error);
 
           <div className="relative z-10 p-5 sm:p-8 md:p-12 flex items-center" style={{ minHeight: 260 }}>
             <div className="max-w-xl">
-              <div className="text-gold font-rajdhani text-xs sm:text-sm tracking-widest mb-1 sm:mb-2">Shop by Category</div>
+              <div className="text-gold font-rajdhani text-xs sm:text-sm tracking-widest mb-1 sm:mb-2 uppercase">
+                {currentSlide.type === 'ad' ? '⭐ Sponsored' : 'Shop by Category'}
+              </div>
               <h2 className="text-xl sm:text-3xl md:text-5xl font-extrabold text-white mb-2 sm:mb-3">
-                {heroItems[heroIndex]?.category}
+                {currentSlide.type === 'ad' ? currentSlide.title : currentSlide.category}
               </h2>
               <p className="text-gray-200 text-xs sm:text-sm md:text-base mb-3 sm:mb-6 line-clamp-1 sm:line-clamp-2">
-                {heroItems[heroIndex]?.product?.name}
+                {currentSlide.type === 'ad' ? currentSlide.subtitle || '' : currentSlide.product?.name}
               </p>
               <button
-                onClick={() => onCategoryChange(heroItems[heroIndex]?.category)}
+                onClick={() => onHeroAction(currentSlide)}
                 className="gradient-gold text-dark px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold shadow-lg shadow-gold/30 hover:scale-105 transition-all text-sm sm:text-base"
               >
-                Explore {heroItems[heroIndex]?.category} →
+                {currentSlide.type === 'ad'
+                  ? (currentSlide.product_id ? 'Shop Now →' : 'Browse Products →')
+                  : `Explore ${currentSlide.category} →`}
               </button>
             </div>
           </div>
 
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-            {heroItems.map((_, idx) => (
+            {slides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => goToSlide(idx)}
                 className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all ${
-                  idx === heroIndex ? 'bg-gold w-5 sm:w-8' : 'bg-white/50 hover:bg-white/80'
+                  idx === heroIndex % slides.length ? 'bg-gold w-5 sm:w-8' : 'bg-white/50 hover:bg-white/80'
                 }`}
               />
             ))}
           </div>
         </div>
       )}
-
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+<div id="products-section" className="flex gap-2 mb-6 overflow-x-auto pb-2">
         <button
           onClick={() => onCategoryChange('All Categories')}
           className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
@@ -189,7 +232,7 @@ console.error('Failed to fetch hero items', error);
         ))}
       </div>
 
-<div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h3 className="text-base sm:text-xl font-bold text-gray-900">
           {selectedCategory === 'All Categories' ? 'All Products' : selectedCategory}
         </h3>
@@ -211,7 +254,7 @@ console.error('Failed to fetch hero items', error);
           {products.length === 0 ? (
             <div className="text-center py-12 text-gray-400">No products found 🔍</div>
           ) : (
-<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {products.map((p, i) => (
                 <ProductCard key={p.id} product={p} index={i} />
               ))}

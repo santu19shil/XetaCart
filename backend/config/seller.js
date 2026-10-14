@@ -3,24 +3,24 @@
 // set (in the Vercel dashboard / .env). The email/password are used to
 // auto-create the seller account on first startup.
 
-// In production, require SELLER_PASSWORD to be explicitly set (no insecure default).
-const SELLER_PASSWORD = process.env.SELLER_PASSWORD
-  || (process.env.NODE_ENV === 'production'
-      ? (() => { throw new Error('SELLER_PASSWORD must be set in production'); })()
-      : 'Santu@321'); // local dev fallback only
+const SELLER_PASSWORD = process.env.SELLER_PASSWORD;
+
+if (!SELLER_PASSWORD) {
+  throw new Error('SELLER_PASSWORD must be set in environment variables');
+}
 
 module.exports = {
-  SELLER_EMAIL: process.env.SELLER_EMAIL || 'santushils16@gmail.com',
+  SELLER_EMAIL: process.env.SELLER_EMAIL,
   SELLER_PASSWORD,
   SELLER_NAME: process.env.SELLER_NAME || 'XetaCart Store',
-  SELLER_PHONE: process.env.SELLER_PHONE || '6033571851',
+  SELLER_PHONE: process.env.SELLER_PHONE,
   // WhatsApp number in international format WITHOUT '+' - used for wa.me links
-  WHATSAPP_NUMBER: process.env.SELLER_WHATSAPP || '916033571851',
+  WHATSAPP_NUMBER: process.env.SELLER_WHATSAPP,
   // Store details for delivery/pickup logic
-  STORE_ADDRESS: process.env.STORE_ADDRESS || 'Jalefa Bazar, Sabroom, South Tripura, 799145',
-  STORE_MAPS_URL: process.env.STORE_MAPS_URL || 'https://maps.app.goo.gl/ot4F6KvMi8ZVJi8c6',
-  STORE_LAT: parseFloat(process.env.STORE_LAT || '23.1640'),
-  STORE_LNG: parseFloat(process.env.STORE_LNG || '91.7380'),
+  STORE_ADDRESS: process.env.STORE_ADDRESS,
+  STORE_MAPS_URL: process.env.STORE_MAPS_URL,
+  STORE_LAT: parseFloat(process.env.STORE_LAT || '0'),
+  STORE_LNG: parseFloat(process.env.STORE_LNG || '0'),
   DELIVERY_RADIUS_KM: parseFloat(process.env.DELIVERY_RADIUS_KM || '3'),
   DELIVERY_CHARGE: parseFloat(process.env.DELIVERY_CHARGE || '30'),
   // Orders above this amount get FREE delivery (0 = never free)
