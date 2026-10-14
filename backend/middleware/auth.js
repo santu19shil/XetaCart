@@ -48,17 +48,18 @@ const sellerOnly = (req, res, next) => {
 
 const setAuthCookies = (res, accessToken, refreshToken) => {
   const isProd = process.env.NODE_ENV === 'production';
+  const sameSite = isProd ? 'strict' : 'lax';
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: isProd,
-    sameSite: 'strict',
+    sameSite,
     maxAge: 15 * 60 * 1000,
     path: '/',
   });
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProd,
-    sameSite: 'strict',
+    sameSite,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/api/auth/refresh',
   });
@@ -66,8 +67,9 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
 
 const clearAuthCookies = (res) => {
   const isProd = process.env.NODE_ENV === 'production';
-  res.clearCookie('accessToken', { path: '/', httpOnly: true, secure: isProd, sameSite: 'strict' });
-  res.clearCookie('refreshToken', { path: '/api/auth/refresh', httpOnly: true, secure: isProd, sameSite: 'strict' });
+  const sameSite = isProd ? 'strict' : 'lax';
+  res.clearCookie('accessToken', { path: '/', httpOnly: true, secure: isProd, sameSite });
+  res.clearCookie('refreshToken', { path: '/api/auth/refresh', httpOnly: true, secure: isProd, sameSite });
 };
 
 module.exports = { authMiddleware, sellerOnly, setAuthCookies, clearAuthCookies, JWT_SECRET, REFRESH_SECRET };

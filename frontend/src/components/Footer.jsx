@@ -1,6 +1,22 @@
-import { Link } from 'react-router-dom';
+import { Link, useEffect, useState } from 'react';
+import { configAPI } from '../api';
 
 export default function Footer() {
+  const [phone, setPhone] = useState('+91 98629 79945');
+
+  useEffect(() => {
+    configAPI.get()
+      .then((res) => {
+        if (res.data?.sellerPhone) {
+          const p = String(res.data.sellerPhone);
+          // Format: +91 98629 79945
+          const formatted = p.replace(/^91/, '+91 ').replace(/(\d{5})(\d{5})/, '$1 $2');
+          setPhone(formatted);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <footer className="gradient-dark text-gray-400 text-center py-8 mt-12 border-t-2 border-gold/20">
       <div className="max-w-[1400px] mx-auto px-4">
@@ -10,7 +26,7 @@ export default function Footer() {
           <div className="text-white/60 text-[0.65rem] font-semibold tracking-[0.25rem] uppercase">Shop more, Pay less</div>
         </div>
         <p className="text-sm mb-2">📍 Store Address: Jalefa Bazar, Sabroom, South Tripura, 799145</p>
-        <p className="text-sm mb-4">📞 +91 60335 71851 | ✉️ contact@xetacart.com</p>
+        <p className="text-sm mb-4">📞 {phone}</p>
         <p className="text-xs">© 2026 XetaCart. All rights reserved.</p>
         <p className="text-xs text-gray-500 mt-1">Designed and developed by <span className="text-gold font-semibold">Santu Shil</span></p>
         <div className="flex flex-wrap justify-center gap-3 mt-4 text-xs">

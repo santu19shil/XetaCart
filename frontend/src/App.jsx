@@ -13,6 +13,7 @@ import Account from './pages/Account';
 import About from './pages/About';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import Contact from './pages/Contact';
 import ProductDetail from './pages/ProductDetail';
 import { useAuth } from './context/AuthContext';
 
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/seller" element={<SellerPanel />} />
           <Route path="/seller/add-product" element={<AddProduct />} />

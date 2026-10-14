@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const supabase = require('../config/db');
 const { authMiddleware, setAuthCookies, clearAuthCookies, JWT_SECRET, REFRESH_SECRET } = require('../middleware/auth');
-const { SELLER_EMAIL } = require('../config/seller');
+const { SELLER_EMAIL, SELLER_PASSWORD, SELLER_NAME, SELLER_PHONE } = require('../config/seller');
 const { handleError } = require('../utils/errors');
 
 const router = express.Router();
@@ -81,6 +81,7 @@ router.post('/login', [
     const { email, password } = req.body;
     const lowerEmail = email.toLowerCase().trim();
 
+    // Check if this is the seller email
     if (lowerEmail === String(SELLER_EMAIL).toLowerCase().trim()) {
       const { data: seller, error } = await supabase
         .from('users')
@@ -92,19 +93,46 @@ router.post('/login', [
         return handleError(error, res);
       }
 
-      if (!seller || seller.role !== 'seller') {
-        return res.status(400).json({ message: 'Invalid credentials' });
+      // If seller exists but role is not seller, update it
+      if (seller && seller.role !== 'seller') {
+        await supabase.from('users').update({ role: 'seller' }).eq('id', seller.id);
       }
 
+      // If seller doesn't exist, create it
+      if (!seller) {
+        const hashedPassword = await bcrypt.hash(SELLER_PASSWORD, 12);
+        const { data: createdSeller, error: createError } = await supabase
+          .from('users')
+          .insert({
+            name: SELLER_NAME,
+            email: lowerEmail,
+            password_hash: hashedPassword,
+            role: 'seller',
+            phone: SELLER_PHONE,
+          })
+          .select('id, name, email, role, phone')
+          .single();
+
+        if (createError) {
+          return handleError(createError, res);
+        }
+
+        const { accessToken, refreshToken } = generateTokens(createdSeller.id);
+        setAuthCookies(res, accessToken, refreshToken);
+        return res.json({ user: createdSeller });
+      }
+
+      // Verify password
       const isMatch = await bcrypt.compare(password, seller.password_hash);
       if (!isMatch) {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
+
       const safeSeller = {
         id: seller.id,
         name: seller.name,
         email: seller.email,
-        role: seller.role,
+        role: 'seller',
         phone: seller.phone,
       };
       const { accessToken, refreshToken } = generateTokens(seller.id);
@@ -112,6 +140,7 @@ router.post('/login', [
       return res.json({ user: safeSeller });
     }
 
+    // Regular user login
     const { data: user, error } = await supabase
       .from('users')
       .select('*')

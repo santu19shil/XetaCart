@@ -10,10 +10,22 @@
   --deal-green: #067d62;
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background: #eaeded;
   color: #0f1111;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
 }
 
 .gradient-gold {
@@ -49,6 +61,134 @@ body {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .animate-card-in {
   animation: cardIn 0.45s ease both;
 }
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease both;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease both;
+}
+
+/* Form input improvements */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+textarea,
+select {
+  @apply w-full border border-gray-300 rounded-lg px-4 py-3 text-base
+         focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20
+         transition-all duration-200 bg-white;
+}
+
+input::placeholder,
+textarea::placeholder {
+  @apply text-gray-400;
+}
+
+/* Button improvements */
+.btn-primary {
+  @apply w-full bg-gradient-to-r from-amber-500 to-orange-500 text-gray-900
+         py-3.5 rounded-full font-bold text-base
+         shadow-lg shadow-amber-500/30
+         hover:from-amber-400 hover:to-orange-400 hover:scale-[1.02]
+         transition-all duration-200
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Card hover effect for mobile */
+@media (hover: hover) {
+  .card-3d:hover {
+    transform: rotateY(0) rotateX(0) translateZ(20px) scale(1.04);
+  }
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+  
+  .card-3d {
+    transform: none !important;
+  }
+  
+  .card-3d:active {
+    transform: scale(0.98) !important;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  @apply outline-none ring-2 ring-orange-500 ring-offset-2 ring-offset-white;
+}
+
+/* Loading skeleton */
+.skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
+}
+
+/* Toast/notification styles */
+.toast {
+  @apply fixed bottom-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium;
+  animation: slideUp 0.4s ease both;
+}
+
+.toast-success { @apply bg-green-600; }
+.toast-error { @apply bg-red-600; }
+.toast-info { @apply bg-blue-600; }
+
+/* Mobile-first container */
+.container-main {
+  @apply max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Text size utilities */
+.text-responsive-sm { @apply text-sm sm:text-base; }
+.text-responsive-base { @apply text-base sm:text-lg; }
+.text-responsive-lg { @apply text-lg sm:text-xl; }
+.text-responsive-xl { @apply text-xl sm:text-2xl; }
+.text-responsive-2xl { @apply text-2xl sm:text-3xl; }
+.text-responsive-3xl { @apply text-3xl sm:text-4xl; }
