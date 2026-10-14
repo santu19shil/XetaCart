@@ -24,9 +24,13 @@ export default function LoginPrompt({ isOpen, onClose, onSuccess }) {
       } else {
         loggedInUser = await login(email, password);
       }
-      onClose();
-      if (onSuccess) onSuccess();
-      navigate(loggedInUser?.role === 'seller' ? '/seller' : '/');
+      if (onSuccess) {
+        await onSuccess(loggedInUser);
+        onClose();
+      } else {
+        onClose();
+        navigate(loggedInUser?.role === 'seller' ? '/seller' : '/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');
     }
@@ -58,6 +62,9 @@ export default function LoginPrompt({ isOpen, onClose, onSuccess }) {
         </div>
 
         <div className="p-6 space-y-4">
+          <p className="text-sm text-gray-600">
+            Sign in or create an account to place your order.
+          </p>
           {error && (
             <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
           )}

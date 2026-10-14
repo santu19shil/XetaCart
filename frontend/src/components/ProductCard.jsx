@@ -1,19 +1,21 @@
+import { useState } from 'react';
 import { ShoppingCart, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import RatingStars from './RatingStars';
+import LoginPrompt from './LoginPrompt';
 
 export default function ProductCard({ product, index = 0 }) {
   const { addToCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
     if (!user) {
-      window.alert('Please log in or create an account before ordering.');
-      navigate('/login');
+      setShowLoginPrompt(true);
       return;
     }
     await addToCart(product.id, 1);
@@ -24,6 +26,7 @@ export default function ProductCard({ product, index = 0 }) {
   };
 
   return (
+    <>
     <div
       className="card-3d bg-white rounded-xl overflow-hidden cursor-pointer animate-card-in relative"
       style={{ animationDelay: `${index * 0.06}s` }}
@@ -95,5 +98,11 @@ export default function ProductCard({ product, index = 0 }) {
         </button>
       </div>
     </div>
+    <LoginPrompt
+      isOpen={showLoginPrompt}
+      onClose={() => setShowLoginPrompt(false)}
+      onSuccess={() => addToCart(product.id, 1)}
+    />
+    </>
   );
 }

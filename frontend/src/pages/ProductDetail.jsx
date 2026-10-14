@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCart, ArrowLeft, Zap, Truck, Tag, Star, MessageSquare } from 'lucide-react';
 import RatingStars from '../components/RatingStars';
+import LoginPrompt from '../components/LoginPrompt';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const [reviews, setReviews] = useState([]);
   const [eligibility, setEligibility] = useState(null);
@@ -72,15 +74,18 @@ export default function ProductDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user]);
 
-  const handleAddToCart = async () => {
-    if (!user) {
-      window.alert('Please log in or create an account before ordering.');
-      navigate('/login');
-      return;
-    }
+  const addCurrentProductToCart = async () => {
     await addToCart(product.id, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleAddToCart = async () => {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
+    await addCurrentProductToCart();
   };
 
   const handleSubmitReview = async (e) => {
@@ -122,6 +127,7 @@ export default function ProductDetail() {
   const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-5xl mx-auto px-4">
 <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm">
@@ -336,5 +342,11 @@ export default function ProductDetail() {
         </div>
       </div>
     </div>
+    <LoginPrompt
+      isOpen={showLoginPrompt}
+      onClose={() => setShowLoginPrompt(false)}
+      onSuccess={addCurrentProductToCart}
+    />
+    </>
   );
 }
