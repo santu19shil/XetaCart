@@ -137,7 +137,7 @@ export default function Checkout() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 max-w-md w-full text-center">
           <CheckCircle className="mx-auto text-deal-green mb-4" size={64} />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Sent to WhatsApp!</h2>
           <p className="text-gray-600 mb-2">Your order details have been sent to the seller.</p>
@@ -160,9 +160,9 @@ export default function Checkout() {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Checkout</h1>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="lg:col-span-2">
-              <form onSubmit={handlePlaceOrder} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <form onSubmit={handlePlaceOrder} className="min-w-0 bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <MapPin size={20} className="text-orange" /> Fulfillment Method
                 </h2>
@@ -245,7 +245,7 @@ export default function Checkout() {
                 <button
                   type="submit"
                   disabled={loading || cart.length === 0}
-                  className="w-full bg-green-600 text-white py-3 rounded-full font-bold text-lg shadow-lg shadow-green-600/30 hover:scale-[1.02] hover:bg-green-700 transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-green-600 text-white px-3 py-3 rounded-full font-bold text-sm sm:text-lg shadow-lg shadow-green-600/30 hover:scale-[1.02] hover:bg-green-700 transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-center"
                 >
                   <MessageCircle size={20} />
                   {loading ? 'Processing...' : `Order via WhatsApp - Item Total ₹${cartTotal.toLocaleString('en-IN')}`}
@@ -254,7 +254,7 @@ export default function Checkout() {
             </div>
 
             <div>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:sticky lg:top-24">
                 <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
                 <div className="space-y-3 mb-4">
                   {cart.map((item) => (

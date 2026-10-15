@@ -56,8 +56,18 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/ads', adRoutes);
 app.use('/api/reviews', reviewRoutes);
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'XetaCart API is running' });
+app.get('/api/health', async (req, res) => {
+  try {
+    const { error } = await supabase.from('products').select('id').limit(1);
+    if (error) {
+      console.error('API health database check failed:', error.message);
+      return res.status(503).json({ status: 'DEGRADED', message: 'The API is running but cannot read the products table.' });
+    }
+    res.json({ status: 'OK', message: 'XetaCart API and database are ready' });
+  } catch (error) {
+    console.error('API health check failed:', error.message);
+    res.status(503).json({ status: 'DEGRADED', message: 'The API is running but cannot reach the database.' });
+  }
 });
 
 const ensureSeller = async () => {

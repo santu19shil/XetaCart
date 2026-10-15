@@ -137,7 +137,7 @@ export default function ProductDetail() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <div className="bg-gray-50 flex items-center justify-center p-8 min-h-[300px] md:min-h-[400px]">
+            <div className="bg-gray-50 flex items-center justify-center p-4 sm:p-8 min-h-[240px] sm:min-h-[300px] md:min-h-[400px]">
               <img
                 src={product.image_url || 'https://placehold.co/400x400/f0f4f8/999?text=No+Image'}
                 alt={product.name}
@@ -148,7 +148,7 @@ export default function ProductDetail() {
               />
             </div>
 
-            <div className="p-6 md:p-8 flex flex-col">
+            <div className="p-4 sm:p-6 md:p-8 flex flex-col">
               <div className="flex items-center gap-2 mb-2">
                 <span className="bg-deal-red text-white text-xs font-bold px-2 py-1 rounded">{discount}% off</span>
                 {product.is_lightning && (

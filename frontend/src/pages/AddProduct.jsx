@@ -101,14 +101,14 @@ export default function AddProduct() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="gradient-dark py-4">
-        <div className="max-w-4xl mx-auto px-4 flex items-center justify-between text-white">
+        <div className="max-w-4xl mx-auto px-4 flex flex-wrap items-center justify-between gap-3 text-white">
           <div>
-            <h1 className="text-xl font-rajdhani font-bold text-gold tracking-wider">Add New Product</h1>
-            <p className="text-gray-400 text-sm mt-1">Fill in the details to list your product on XetaCart</p>
+            <h1 className="text-lg sm:text-xl font-rajdhani font-bold text-gold tracking-wider">Add New Product</h1>
+            <p className="text-gray-400 text-xs sm:text-sm mt-1">Fill in the details to list your product on XetaCart</p>
           </div>
           <button
             onClick={() => navigate('/seller')}
-            className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+            className="bg-white/10 hover:bg-white/20 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
           >
             <ArrowLeft size={16} /> Back to Dashboard
           </button>
@@ -116,7 +116,7 @@ export default function AddProduct() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 sm:p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
@@ -234,7 +234,7 @@ export default function AddProduct() {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
-              <div className="flex items-end gap-4">
+              <div className="flex flex-wrap items-end gap-3 sm:gap-4">
                 {formData.image_url ? (
                   <img
                     src={formData.image_url}
@@ -260,7 +260,7 @@ export default function AddProduct() {
               />
             </div>
 
-            <div className="md:col-span-2 flex gap-6">
+            <div className="md:col-span-2 flex flex-wrap gap-x-6 gap-y-2">
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
@@ -281,18 +281,18 @@ export default function AddProduct() {
               </label>
             </div>
 
-            <div className="md:col-span-2 flex justify-end gap-3 pt-4">
+            <div className="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4">
               <button
                 type="button"
                 onClick={() => navigate('/seller')}
-                className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="gradient-gold text-dark px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-gold/30 hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50"
+                className="w-full sm:w-auto justify-center gradient-gold text-dark px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-gold/30 hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 <Save size={16} />
                 {loading ? 'Saving...' : 'Add Product'}

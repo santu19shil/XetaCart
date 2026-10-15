@@ -240,7 +240,7 @@ export default function SellerDashboard() {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
-                <div className="flex gap-3 items-center">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <input
                     type="text"
                     value={formData.image_url}
@@ -294,7 +294,29 @@ export default function SellerDashboard() {
           <div className="text-center py-12 text-gray-400">Loading products...</div>
         ) : (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-            <div className="overflow-x-auto">
+            <div className="divide-y divide-gray-100 md:hidden">
+              {products.map((product) => (
+                <article key={product.id} className="flex min-w-0 gap-3 p-4">
+                  <img src={product.image_url || 'https://placehold.co/64x64/f0f4f8/999?text=P'} alt="" className="h-16 w-16 shrink-0 rounded-lg bg-gray-100 object-contain" />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="break-words font-semibold text-gray-900">{product.name}</h3>
+                    <p className="mt-0.5 break-all font-mono text-xs text-gray-500">{product.product_code || 'Code pending'}</p>
+                    <p className="mt-1 text-xs text-gray-600">{product.category}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                      <span className="font-bold text-deal-red">₹{Number(product.price).toLocaleString('en-IN')}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {product.stock} in stock
+                      </span>
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <button type="button" onClick={() => handleEdit(product)} disabled={saving} className="min-h-10 rounded-lg border border-blue-200 px-3 text-sm font-medium text-blue-700 disabled:opacity-50">Edit</button>
+                      <button type="button" onClick={() => handleDelete(product.id)} disabled={saving} className="min-h-10 rounded-lg border border-red-200 px-3 text-sm font-medium text-red-700 disabled:opacity-50">Delete</button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>

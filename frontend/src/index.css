@@ -128,8 +128,14 @@ textarea::placeholder {
 
 /* Touch-friendly tap targets */
 @media (max-width: 768px) {
-  button, a, input, select, textarea {
+  button:not(.carousel-indicator), a,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select, textarea {
     min-height: 44px;
+  }
+
+  button:not(.carousel-indicator) {
+    min-width: 44px;
   }
   
   .card-3d {

@@ -180,10 +180,12 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
             {slides.map((_, idx) => (
               <button
                 key={idx}
-                onClick={() => goToSlide(idx)}
-                className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all ${
+                type="button"
+                className={`carousel-indicator w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all ${
                   idx === heroIndex % slides.length ? 'bg-gold w-5 sm:w-8' : 'bg-white/50 hover:bg-white/80'
                 }`}
+                aria-label={`Show slide ${idx + 1}`}
+                onClick={() => goToSlide(idx)}
               />
             ))}
           </div>

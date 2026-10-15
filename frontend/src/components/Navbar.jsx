@@ -21,8 +21,8 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
 
   return (
     <nav className="gradient-dark sticky top-0 z-50 shadow-lg border-b border-gold/20">
-<div className="max-w-[1400px] mx-auto px-2 sm:px-4 py-2 flex items-center gap-2 sm:gap-4">
-        <Link to={isSeller ? '/seller' : '/'} className="flex items-center gap-2 flex-shrink-0">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2 flex flex-wrap items-center gap-2 sm:gap-4">
+        <Link to={isSeller ? '/seller' : '/'} className="order-1 flex items-center gap-2 flex-shrink-0">
           <img src="/logo.png" alt="XetaCart" className="h-8 sm:h-10 w-auto object-contain" />
           <div className="hidden md:block">
             <div className="text-gold font-rajdhani font-bold text-xl tracking-wider leading-none">XetaCart</div>
@@ -30,7 +30,7 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
           </div>
         </Link>
 
-        {!isSeller && <div className="flex-1 min-w-0 max-w-2xl">
+        {!isSeller && <div className="order-3 basis-full min-w-0 sm:order-2 sm:basis-auto sm:flex-1 sm:max-w-2xl">
           <div className="flex bg-white rounded-md shadow-md shadow-orange/30 border-2 border-orange overflow-hidden">
             <select
               value={selectedCategory}
@@ -65,7 +65,7 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
           </div>
         </div>}
 
-        <div className="flex items-center gap-1 sm:gap-4 text-white text-sm flex-shrink-0 ml-auto">
+        <div className="order-2 flex items-center gap-1 sm:gap-4 text-white text-sm flex-shrink-0 ml-auto">
           {user ? (
             <>
               {!isSeller && (
@@ -99,7 +99,7 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
           )}
         </div>
 
-        <button className="lg:hidden text-white text-2xl" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <button type="button" aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileMenuOpen} className="order-2 lg:hidden text-white text-2xl" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           ☰
         </button>
       </div>
@@ -109,13 +109,15 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
           {user && (
             <>
               {user.role === 'seller' && (
-                <button onClick={() => navigate('/seller')} className="block w-full text-left text-gold py-1">Seller Panel</button>
+                <button onClick={() => { setMobileMenuOpen(false); navigate('/seller'); }} className="block w-full text-left text-gold py-2">Seller Dashboard</button>
               )}
-              <button onClick={logout} className="block w-full text-left text-gray-400 py-1">Logout</button>
+              <Link to="/account" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200">My Account</Link>
+              {!isSeller && <button onClick={() => { setMobileMenuOpen(false); handleCartClick(); }} className="block w-full text-left py-2 text-gray-200">Cart ({cartCount})</button>}
+              <button onClick={logout} className="block w-full text-left text-gray-400 py-2">Logout</button>
             </>
           )}
           {!user && (
-            <Link to="/login" className="block text-gold py-1">Sign In</Link>
+            <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="block text-gold py-2">Sign In</Link>
           )}
         </div>
       )}

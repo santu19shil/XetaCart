@@ -1,12 +1,26 @@
 // Vercel serverless entry point.
-// It wraps the reusable Express app (backend/app.js) as a single serverless function.
-const app = require('../backend/app');
+const hasSupabaseKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY);
+const missingConfiguration = [];
 
-// Kick off idempotent database seeds (seller account + customer IDs) on cold
-// start. This is fire-and-forget; requests are not blocked on it.
-require('../backend/app').ensureSeller().catch((err) => {
-  console.error('Seller account setup failed in serverless:', err.message);
-});
+if (!process.env.SUPABASE_URL) missingConfiguration.push('SUPABASE_URL');
+if (!hasSupabaseKey) missingConfiguration.push('SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY');
+for (const key of ['JWT_SECRET', 'REFRESH_SECRET']) {
+  if (!process.env[key] || process.env[key].length < 32) missingConfiguration.push(`${key} (at least 32 characters)`);
+}
 
-// Vercel will invoke this handler for every request matched by vercel.json rewrites.
-module.exports = app;
+if (missingConfiguration.length > 0) {
+  // Return a readable setup error instead of a Vercel FUNCTION_INVOCATION_FAILED.
+  module.exports = (req, res) => res.status(503).json({
+    code: 'API_CONFIGURATION_REQUIRED',
+    message: `Configure these Production environment variables in Vercel: ${missingConfiguration.join(', ')}.`,
+  });
+} else {
+  const app = require('../backend/app');
+
+  // Create the seller account if needed without delaying the first request.
+  app.ensureSeller().catch((err) => {
+    console.error('Seller account setup failed in serverless:', err.message);
+  });
+
+  module.exports = app;
+}
