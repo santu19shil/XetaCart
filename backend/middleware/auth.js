@@ -2,16 +2,19 @@ const jwt = require('jsonwebtoken');
 const supabase = require('../config/db');
 
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  throw new Error('JWT_SECRET must be set and at least 32 characters');
-}
-
 const REFRESH_SECRET = process.env.REFRESH_SECRET;
-if (!REFRESH_SECRET || REFRESH_SECRET.length < 32) {
-  throw new Error('REFRESH_SECRET must be set and at least 32 characters');
-}
+const hasAuthConfiguration = Boolean(
+  JWT_SECRET && JWT_SECRET.length >= 32 && REFRESH_SECRET && REFRESH_SECRET.length >= 32,
+);
 
 const authMiddleware = async (req, res, next) => {
+  if (!hasAuthConfiguration) {
+    return res.status(503).json({
+      code: 'AUTH_CONFIGURATION_REQUIRED',
+      message: 'Authentication is unavailable until JWT_SECRET and REFRESH_SECRET are configured with at least 32 characters each.',
+    });
+  }
+
   try {
     const token = req.cookies?.accessToken
       || req.header('Authorization')?.replace('Bearer ', '');
@@ -72,4 +75,4 @@ const clearAuthCookies = (res) => {
   res.clearCookie('refreshToken', { path: '/api/auth/refresh', httpOnly: true, secure: isProd, sameSite });
 };
 
-module.exports = { authMiddleware, sellerOnly, setAuthCookies, clearAuthCookies, JWT_SECRET, REFRESH_SECRET };
+module.exports = { authMiddleware, sellerOnly, setAuthCookies, clearAuthCookies, JWT_SECRET, REFRESH_SECRET, hasAuthConfiguration };

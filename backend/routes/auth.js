@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const supabase = require('../config/db');
-const { authMiddleware, setAuthCookies, clearAuthCookies, JWT_SECRET, REFRESH_SECRET } = require('../middleware/auth');
+const { authMiddleware, setAuthCookies, clearAuthCookies, JWT_SECRET, REFRESH_SECRET, hasAuthConfiguration } = require('../middleware/auth');
 const { SELLER_EMAIL, SELLER_PASSWORD, SELLER_NAME, SELLER_PHONE } = require('../config/seller');
 const { handleError } = require('../utils/errors');
 
@@ -25,6 +25,13 @@ router.post('/register', [
     .matches(/[^A-Za-z0-9]/).withMessage('Password must contain special character'),
   body('phone').matches(/^[\d\s\-\+]{10,}$/).withMessage('Valid phone required')
 ], async (req, res) => {
+  if (!hasAuthConfiguration) {
+    return res.status(503).json({
+      code: 'AUTH_CONFIGURATION_REQUIRED',
+      message: 'Registration and sign-in are unavailable until JWT_SECRET and REFRESH_SECRET are configured with at least 32 characters each.',
+    });
+  }
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -72,6 +79,13 @@ router.post('/login', [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
+  if (!hasAuthConfiguration) {
+    return res.status(503).json({
+      code: 'AUTH_CONFIGURATION_REQUIRED',
+      message: 'Registration and sign-in are unavailable until JWT_SECRET and REFRESH_SECRET are configured with at least 32 characters each.',
+    });
+  }
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -175,6 +189,14 @@ router.post('/login', [
 });
 
 router.post('/refresh', async (req, res) => {
+  if (!hasAuthConfiguration) {
+    clearAuthCookies(res);
+    return res.status(503).json({
+      code: 'AUTH_CONFIGURATION_REQUIRED',
+      message: 'Session refresh is unavailable until JWT_SECRET and REFRESH_SECRET are configured with at least 32 characters each.',
+    });
+  }
+
   try {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
