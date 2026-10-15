@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { syncUpdate } from '../services/sync';
 import { Save, User, Phone, Mail, Package, Home, LogOut, ArrowLeft } from 'lucide-react';
 
 export default function Account() {
@@ -33,10 +32,7 @@ export default function Account() {
       const data = { name: formData.name, phone: formData.phone };
       if (password) data.password = password;
 
-      await syncUpdate('users', user.id, data);
-
-      const updatedUser = { ...user, name: formData.name, phone: formData.phone };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      await updateProfile(data);
 
       setEditing(false);
       setPassword('');
@@ -193,7 +189,7 @@ export default function Account() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        {user.role !== 'seller' && <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Home size={18} className="text-orange" /> Quick Links
           </h2>
@@ -205,7 +201,7 @@ export default function Account() {
               🏪 Continue Shopping
             </Link>
           </div>
-        </div>
+        </div>}
       </div>
     </div>
   );

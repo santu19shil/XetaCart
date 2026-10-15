@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { productsAPI, adsAPI } from '../api';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = [
   'Groceries',
@@ -29,12 +30,13 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
   const [heroIndex, setHeroIndex] = useState(0);
   const [sortBy, setSortBy] = useState('newest');
   const { cartCount } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   // The hero carousel shows seller ads when they exist, otherwise it falls
   // back to one random product per category.
   const slides =
-    ads.length > 0
+    user?.role !== 'seller' && ads.length > 0
       ? ads.map((ad) => ({ type: 'ad', ...ad }))
       : heroItems.map((item) => ({ type: 'category', ...item }));
 
@@ -46,10 +48,9 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
       if (selectedCategory && selectedCategory !== 'All' && selectedCategory !== 'All Categories') {
         params.category = selectedCategory;
       }
-      if (sortBy === 'price_asc') params.sort = 'price_asc';
-      if (sortBy === 'price_desc') params.sort = 'price_desc';
+      params.sort = sortBy;
       const response = await productsAPI.getAll(params);
-      setProducts(response.data);
+      setProducts(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch products', error);
     } finally {
@@ -62,7 +63,7 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
       const results = await Promise.all(
         CATEGORIES.map(async (cat) => {
           const res = await productsAPI.getAll({ category: cat, limit: 10 });
-          const items = res.data;
+          const items = Array.isArray(res.data) ? res.data : [];
           if (items.length === 0) return null;
           const randomItem = items[Math.floor(Math.random() * items.length)];
           return { category: cat, product: randomItem };
@@ -77,9 +78,10 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
   const fetchAds = async () => {
     try {
       const response = await adsAPI.getAll();
-      setAds(response.data || []);
+      setAds(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      console.error('Failed to fetch ads', error);
+      console.warn('Ads unavailable (table may not exist):', error.message);
+      setAds([]);
     }
   };
 
@@ -126,52 +128,29 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-4">
-{slides.length > 0 && currentSlide && (
-        <div className="hero-banner rounded-xl mb-6 relative overflow-hidden bg-gray-900" style={{ minHeight: 260 }}>
+      {slides.length > 0 && currentSlide && (
+        <div className="hero-banner rounded-xl mb-6 relative overflow-hidden bg-gray-900" style={{ height: 'clamp(280px, 38vw, 520px)' }}>
           <div className="absolute inset-0">
-            <div className="h-full w-full hidden sm:block">
-              {slides.map((slide, idx) => (
-                <div
-                  key={slide.id || slide.category || idx}
-                  className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-                  style={{ opacity: idx === heroIndex % slides.length ? 1 : 0 }}
-                >
-                  <img
-                    src={slide.type === 'ad' ? slide.image_url : slide.product?.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
-                    alt={slide.type === 'ad' ? slide.title : slide.category}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src = 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart';
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
-                </div>
-              ))}
-            </div>
-            <div className="h-full w-full sm:hidden">
-              <div className="relative h-full w-full overflow-hidden">
-                {slides.map((slide, idx) => (
-                  <div
-                    key={slide.id || slide.category || idx}
-                    className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-                    style={{ opacity: idx === heroIndex % slides.length ? 1 : 0 }}
-                  >
-                    <img
-                      src={slide.type === 'ad' ? slide.image_url : slide.product?.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
-                      alt={slide.type === 'ad' ? slide.title : slide.category}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
-                  </div>
-                ))}
+            {slides.map((slide, idx) => (
+              <div
+                key={slide.id || slide.category || idx}
+                className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+                style={{ opacity: idx === heroIndex % slides.length ? 1 : 0 }}
+              >
+                <img
+                  src={slide.type === 'ad' ? slide.image_url : slide.product?.image_url || 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart'}
+                  alt={slide.type === 'ad' ? slide.title : slide.category}
+                  className="h-full w-full object-contain"
+                  onError={(e) => {
+                    e.target.src = 'https://placehold.co/1200x400/f0f4f8/999?text=XetaCart';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
               </div>
-            </div>
+            ))}
           </div>
 
-          <div className="relative z-10 p-5 sm:p-8 md:p-12 flex items-center" style={{ minHeight: 260 }}>
+          <div className="relative z-10 h-full p-5 sm:p-8 md:p-12 flex items-center">
             <div className="max-w-xl">
               <div className="text-gold font-rajdhani text-xs sm:text-sm tracking-widest mb-1 sm:mb-2 uppercase">
                 {currentSlide.type === 'ad' ? '⭐ Sponsored' : 'Shop by Category'}
@@ -206,7 +185,7 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
           </div>
         </div>
       )}
-<div id="products-section" className="flex gap-2 mb-6 overflow-x-auto pb-2">
+{user?.role !== 'seller' && <div id="products-section" className="flex gap-2 mb-6 overflow-x-auto pb-2">
         <button
           onClick={() => onCategoryChange('All Categories')}
           className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
@@ -230,22 +209,23 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
             {cat}
           </button>
         ))}
-      </div>
+      </div>}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+      {user?.role !== 'seller' && <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h3 className="text-base sm:text-xl font-bold text-gray-900">
           {selectedCategory === 'All Categories' ? 'All Products' : selectedCategory}
         </h3>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 text-xs sm:text-sm focus:outline-none focus:border-orange"
+          className="border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-orange"
+          style={{ width: '10rem', flex: '0 0 10rem', padding: '0.375rem 0.625rem' }}
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-      </div>
+      </div>}
 
       {loading ? (
         <div className="text-center py-12 text-gray-400">Loading products...</div>

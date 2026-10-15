@@ -83,6 +83,10 @@ router.post('/login', [
 
     // Check if this is the seller email
     if (lowerEmail === String(SELLER_EMAIL).toLowerCase().trim()) {
+      if (!SELLER_PASSWORD) {
+        return res.status(503).json({ message: 'Seller sign-in is not configured' });
+      }
+
       const { data: seller, error } = await supabase
         .from('users')
         .select('id, name, email, role, phone, password_hash')
@@ -95,7 +99,10 @@ router.post('/login', [
 
       // If seller exists but role is not seller, update it
       if (seller && seller.role !== 'seller') {
-        await supabase.from('users').update({ role: 'seller' }).eq('id', seller.id);
+        const { error: roleError } = await supabase.from('users').update({ role: 'seller' }).eq('id', seller.id);
+        if (roleError) {
+          return handleError(roleError, res);
+        }
       }
 
       // If seller doesn't exist, create it

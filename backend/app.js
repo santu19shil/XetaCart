@@ -61,6 +61,11 @@ app.get('/api/health', (req, res) => {
 });
 
 const ensureSeller = async () => {
+  if (!SELLER_EMAIL || !SELLER_PASSWORD) {
+    console.warn('Seller account seed skipped: set SELLER_EMAIL and SELLER_PASSWORD to enable it.');
+    return;
+  }
+
   try {
     const { data, error } = await supabase
       .from('users')

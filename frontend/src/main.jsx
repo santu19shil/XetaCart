@@ -4,16 +4,23 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
-import './index.css'
+import AppErrorBoundary from './components/AppErrorBoundary'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-)
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  throw new Error('XetaCart root element was not found')
+} else {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <AppErrorBoundary>
+        <BrowserRouter>
+          <AuthProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </AppErrorBoundary>
+    </React.StrictMode>
+  )
+}

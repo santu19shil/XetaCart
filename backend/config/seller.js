@@ -5,10 +5,6 @@
 
 const SELLER_PASSWORD = process.env.SELLER_PASSWORD;
 
-if (!SELLER_PASSWORD) {
-  throw new Error('SELLER_PASSWORD must be set in environment variables');
-}
-
 module.exports = {
   SELLER_EMAIL: process.env.SELLER_EMAIL,
   SELLER_PASSWORD,

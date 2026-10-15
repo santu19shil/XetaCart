@@ -5,6 +5,17 @@ const { authMiddleware, sellerOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
+const isMissingAdsTable = (error) =>
+  error?.code === 'PGRST205' ||
+  /could not find the table ['"]?public\.advertisements['"]? in the schema cache/i.test(error?.message || '');
+
+const sendAdsError = (res, error) => {
+  if (isMissingAdsTable(error)) {
+    return res.status(503).json({ message: 'Hero ads are not set up yet. Run ads-migration.sql in the Supabase SQL Editor and refresh the schema cache.' });
+  }
+  return res.status(500).json({ message: error.message || 'Ads request failed' });
+};
+
 // Public: list active advertisements for the hero banner.
 // Optionally include the linked product so the frontend can deep-link to it.
 router.get('/', async (req, res) => {
@@ -17,7 +28,9 @@ router.get('/', async (req, res) => {
       .order('created_at', { ascending: true });
 
     if (error) {
-      return res.status(500).json({ message: error.message });
+      // Ads are optional for the storefront; Home falls back to product slides.
+      if (isMissingAdsTable(error)) return res.json([]);
+      return sendAdsError(res, error);
     }
 
     const ads = (data || []).map((ad) => ({
@@ -43,7 +56,7 @@ router.get('/all', authMiddleware, sellerOnly, async (req, res) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      return res.status(500).json({ message: error.message });
+      return sendAdsError(res, error);
     }
 
     const ads = (data || []).map((ad) => ({
@@ -92,6 +105,7 @@ router.post('/', authMiddleware, sellerOnly, adValidators, async (req, res) => {
       .single();
 
     if (error) {
+      if (isMissingAdsTable(error)) return sendAdsError(res, error);
       return res.status(400).json({ message: error.message });
     }
 
@@ -120,7 +134,7 @@ router.put('/:id', authMiddleware, sellerOnly, adValidators, async (req, res) =>
       .maybeSingle();
 
     if (checkError) {
-      return res.status(500).json({ message: checkError.message });
+      return sendAdsError(res, checkError);
     }
     if (!adCheck) {
       return res.status(404).json({ message: 'Ad not found or not authorized' });
@@ -142,6 +156,7 @@ router.put('/:id', authMiddleware, sellerOnly, adValidators, async (req, res) =>
       .single();
 
     if (error) {
+      if (isMissingAdsTable(error)) return sendAdsError(res, error);
       return res.status(400).json({ message: error.message });
     }
 
@@ -163,7 +178,7 @@ router.delete('/:id', authMiddleware, sellerOnly, async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      return res.status(500).json({ message: error.message });
+      return sendAdsError(res, error);
     }
     if (!data) {
       return res.status(404).json({ message: 'Ad not found or not authorized' });

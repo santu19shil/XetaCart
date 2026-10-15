@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { syncInsert, syncUpdate, syncDelete } from '../services/sync';
+import { productsAPI, uploadAPI } from '../api';
 import { Trash2, Edit, Plus, Upload, X } from 'lucide-react';
+import SellerAdsManager from './SellerAdsManager';
 
 const CATEGORIES = [
   'Groceries',
@@ -37,12 +39,8 @@ export default function SellerDashboard() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/products/seller/my-products', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch products');
-      const data = await response.json();
-      setProducts(data);
+      const response = await productsAPI.getMyProducts();
+      setProducts(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch products', error);
       alert('Failed to load products. Please try again.');
@@ -130,18 +128,11 @@ export default function SellerDashboard() {
     try {
       const formData = new FormData();
       formData.append('image', file);
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!response.ok) throw new Error('Upload failed');
-      const result = await response.json();
+      const { data: result } = await uploadAPI.upload(formData);
       setFormData(prev => ({ ...prev, image_url: result.url }));
     } catch (error) {
       console.error('Upload failed', error);
-      alert('Image upload failed');
+      alert(error.response?.data?.message || 'Image upload failed');
     } finally {
       setUploading(false);
     }
@@ -352,6 +343,7 @@ export default function SellerDashboard() {
             )}
           </div>
         )}
+        <SellerAdsManager products={products} />
       </div>
     </div>
   );

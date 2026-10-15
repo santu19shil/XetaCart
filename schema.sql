@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS products (
   id BIGSERIAL PRIMARY KEY,
-  product_code VARCHAR(50) UNIQUE,
+  product_code VARCHAR(50),
   seller_id BIGINT NOT NULL REFERENCES users(id),
   name VARCHAR(500) NOT NULL,
   description TEXT,
@@ -45,6 +45,13 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Backfill product codes for databases created before this column was added.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS product_code VARCHAR(50);
+UPDATE products
+SET product_code = 'XC-' || (id + 100001)::TEXT
+WHERE product_code IS NULL OR BTRIM(product_code) = '';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_products_product_code_unique ON products(product_code);
 
 -- ---------------------------------------------------------------------------
 -- Cart

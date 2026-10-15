@@ -30,12 +30,13 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
           </div>
         </Link>
 
-        <div className="flex-1 min-w-0 max-w-2xl">
+        {!isSeller && <div className="flex-1 min-w-0 max-w-2xl">
           <div className="flex bg-white rounded-md shadow-md shadow-orange/30 border-2 border-orange overflow-hidden">
             <select
               value={selectedCategory}
               onChange={(e) => onCategoryChange(e.target.value)}
-              className="bg-gray-100 border-none text-[9px] px-1 py-1 text-gray-600 hidden sm:block"
+              className="bg-gray-100 border-none text-[9px] text-gray-600 hidden sm:block"
+              style={{ width: '8rem', flex: '0 0 8rem', padding: '0.25rem 0.5rem' }}
             >
               <option>All Categories</option>
               <option>Groceries</option>
@@ -53,11 +54,16 @@ export default function Navbar({ onCartClick, searchQuery, onSearchChange, selec
               onChange={(e) => onSearchChange(e.target.value)}
               className="flex-1 border-none px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm outline-none min-w-0"
             />
-            <button className="bg-orange px-2 sm:px-4 hover:bg-orange/90 transition-colors">
+            <button
+              type="button"
+              aria-label="Search products"
+              onClick={() => document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="bg-orange px-2 sm:px-4 hover:bg-orange/90 transition-colors"
+            >
               🔍
             </button>
           </div>
-        </div>
+        </div>}
 
         <div className="flex items-center gap-1 sm:gap-4 text-white text-sm flex-shrink-0 ml-auto">
           {user ? (

@@ -199,7 +199,7 @@ router.post('/', authMiddleware, sellerOnly, [
     }
 
     const lastId = maxData?.[0]?.id ?? 0;
-    const nextNumber = lastId + 100000 + 1;
+    const nextNumber = Number(lastId) + 100001;
     const product_code = `XC-${nextNumber}`;
 
     const { data, error } = await supabase

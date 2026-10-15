@@ -8,17 +8,33 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        console.warn('Auth init timeout - proceeding without session');
+        setLoading(false);
+      }
+    }, 5000);
+
     const initAuth = async () => {
       try {
         const response = await authAPI.refresh();
-        setUser(response.data.user);
+        if (mounted) setUser(response.data.user);
       } catch (error) {
-        // No valid session
+        // A missing or expired session is normal for signed-out visitors.
       } finally {
-        setLoading(false);
+        if (mounted) {
+          clearTimeout(timeoutId);
+          setLoading(false);
+        }
       }
     };
     initAuth();
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const login = async (email, password) => {

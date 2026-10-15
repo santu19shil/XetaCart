@@ -1,4 +1,5 @@
-import { Link, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { configAPI } from '../api';
 
 export default function Footer() {

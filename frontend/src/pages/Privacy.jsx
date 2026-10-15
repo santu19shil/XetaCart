@@ -1,6 +1,18 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { configAPI } from '../api';
 
 export default function Privacy() {
+  const [phone, setPhone] = useState('+91 98629 79945');
+
+  useEffect(() => {
+    configAPI.get().then(({ data }) => {
+      if (data?.sellerPhone) setPhone(String(data.sellerPhone));
+    }).catch(() => {});
+  }, []);
+
+  const phoneHref = phone.replace(/[^\d+]/g, '');
+
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-3xl mx-auto px-4">
@@ -32,7 +44,7 @@ export default function Privacy() {
             </p>
             <h2 className="text-xl font-bold text-gray-900 mt-6">6. Your Rights</h2>
             <p>
-              You have the right to access, correct, or delete your personal data. Contact us at <strong className="text-gray-900">contact@xetacart.com</strong> for any privacy-related requests.
+              You have the right to access, correct, or delete your personal data. Call us at <a className="font-semibold text-gray-900 hover:underline" href={`tel:${phoneHref}`}>{phone}</a> for any privacy-related requests.
             </p>
             <h2 className="text-xl font-bold text-gray-900 mt-6">7. Changes to This Policy</h2>
             <p>

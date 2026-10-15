@@ -26,12 +26,22 @@ export default function Contact() {
     }
 
     setLoading(true);
+    const whatsappTab = window.open('about:blank', '_blank');
+    if (!whatsappTab) {
+      setError('Allow pop-ups for this site to open WhatsApp, then try again.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      const response = await configAPI.get();
-      if (response.data?.whatsappNumber) {
-        setWhatsappNumber(response.data.whatsappNumber);
+      let number = whatsappNumber;
+      try {
+        const response = await configAPI.get();
+        if (response.data?.whatsappNumber) number = response.data.whatsappNumber;
+      } catch (configError) {
+        console.warn('Using the configured fallback WhatsApp number:', configError.message);
       }
+      setWhatsappNumber(number);
 
       const lines = [];
       lines.push('📩 *NEW CONTACT MESSAGE - XetaCart*');
@@ -45,8 +55,9 @@ export default function Contact() {
       lines.push(message);
       lines.push('-----------------------------');
 
-      const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
-      window.open(waUrl, '_blank');
+      const waUrl = `https://wa.me/${number}?text=${encodeURIComponent(lines.join('\n'))}`;
+      whatsappTab.opener = null;
+      whatsappTab.location.href = waUrl;
 
       setSuccess(true);
       setName('');
@@ -56,6 +67,7 @@ export default function Contact() {
       setMessage('');
     } catch (err) {
       console.error('Contact form error:', err);
+      whatsappTab.close();
       setError('Failed to open WhatsApp. Please try again or contact us directly.');
     } finally {
       setLoading(false);

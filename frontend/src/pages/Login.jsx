@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -61,54 +61,64 @@ export default function Login() {
               <>
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
-                  <input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-                    required
-                    autoComplete="name"
-                    placeholder="Enter your full name"
-                  />
+                  <div className="relative">
+                    <UserRound aria-hidden="true" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg !pl-11 pr-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                      required
+                      autoComplete="name"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-                    required
-                    autoComplete="tel"
-                    placeholder="Enter your phone number"
-                  />
+                  <div className="relative">
+                    <Phone aria-hidden="true" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg !pl-11 pr-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                      required
+                      autoComplete="tel"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
                 </div>
               </>
             )}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-                required
-                autoComplete={isRegister ? 'email' : 'username'}
-                placeholder="Enter your email"
-              />
+              <div className="relative">
+                <Mail aria-hidden="true" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg !pl-11 pr-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                  required
+                  autoComplete={isRegister ? 'email' : 'username'}
+                  placeholder="Enter your email"
+                />
+              </div>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
+                <LockKeyhole aria-hidden="true" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                  className="w-full border border-gray-300 rounded-lg !pl-11 !pr-12 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                   required
                   autoComplete={isRegister ? 'new-password' : 'current-password'}
                   placeholder="Enter your password"
@@ -116,7 +126,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((visible) => !visible)}
-                  className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

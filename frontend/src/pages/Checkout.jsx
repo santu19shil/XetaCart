@@ -84,6 +84,12 @@ export default function Checkout() {
     if (cart.length === 0) return;
     setLoading(true);
     setOrderError('');
+    const whatsappTab = window.open('about:blank', '_blank');
+    if (!whatsappTab) {
+      setOrderError('Allow pop-ups for this site to open WhatsApp, then try again.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const sanitizedAddress = DOMPurify.sanitize(address.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
@@ -106,12 +112,14 @@ export default function Checkout() {
 
       clearCart();
 
-      window.open(waUrl, '_blank');
+      whatsappTab.opener = null;
+      whatsappTab.location.href = waUrl;
 
       setSuccess(true);
       setLoading(false);
     } catch (error) {
       console.error('Failed to place order', error);
+      whatsappTab.close();
       setOrderError(error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || 'Failed to place your order. Please try again.');
       setLoading(false);
     }

@@ -93,12 +93,12 @@ export default function LoginPrompt({ isOpen, onClose, onSuccess }) {
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-10 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                      className="w-full border border-gray-300 rounded-lg !pl-11 pr-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                       required
                       placeholder="Enter your name"
                       autoComplete="name"
                     />
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <User aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   </div>
                 </div>
                 <div>
@@ -109,12 +109,12 @@ export default function LoginPrompt({ isOpen, onClose, onSuccess }) {
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-10 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                      className="w-full border border-gray-300 rounded-lg !pl-11 pr-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                       required
                       placeholder="Enter your phone number"
                       autoComplete="tel"
                     />
-                    <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <Smartphone aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   </div>
                 </div>
               </>
@@ -127,12 +127,12 @@ export default function LoginPrompt({ isOpen, onClose, onSuccess }) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-10 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                  className="w-full border border-gray-300 rounded-lg !pl-11 pr-4 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                   required
                   placeholder="Enter your email"
                   autoComplete={isRegister ? 'email' : 'username'}
                 />
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Mail aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               </div>
             </div>
             <div>
@@ -143,16 +143,16 @@ export default function LoginPrompt({ isOpen, onClose, onSuccess }) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-10 pr-12 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                  className="w-full border border-gray-300 rounded-lg !pl-11 !pr-12 py-3 text-base focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                   required
                   placeholder="Enter your password"
                   autoComplete={isRegister ? 'new-password' : 'current-password'}
                 />
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Lock aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <button
                   type="button"
                   onClick={() => setShowPassword((visible) => !visible)}
-                  className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
