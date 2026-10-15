@@ -25,6 +25,7 @@ const SORT_OPTIONS = [
 export default function Home({ searchQuery, selectedCategory, onCategoryChange }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [heroItems, setHeroItems] = useState([]);
   const [ads, setAds] = useState([]);
   const [heroIndex, setHeroIndex] = useState(0);
@@ -42,6 +43,7 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
 
   const applyFilters = async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const params = {};
       if (searchQuery) params.search = searchQuery;
@@ -53,6 +55,8 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
       setProducts(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch products', error);
+      setProducts([]);
+      setLoadError(error.response?.data?.message || 'Products could not be loaded. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -229,6 +233,13 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
 
       {loading ? (
         <div className="text-center py-12 text-gray-400">Loading products...</div>
+      ) : loadError ? (
+        <div className="text-center py-12" role="alert">
+          <p className="mb-3 text-red-700">{loadError}</p>
+          <button type="button" onClick={applyFilters} className="rounded-full bg-gray-900 px-5 py-2 font-semibold text-white hover:bg-gray-700">
+            Try again
+          </button>
+        </div>
       ) : (
         <>
           {products.length === 0 ? (

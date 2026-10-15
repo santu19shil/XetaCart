@@ -92,9 +92,10 @@ export default function ProductCard({ product, index = 0 }) {
         )}
         <button
           onClick={handleAddToCart}
-          className="w-full gradient-gold text-dark border-none rounded-full py-2 text-sm font-bold cursor-pointer transition-all hover:scale-105 shadow-md shadow-gold/30 active:scale-95"
+          disabled={Number(product.stock) <= 0}
+          className="w-full gradient-gold text-dark border-none rounded-full py-2 text-sm font-bold cursor-pointer transition-all hover:scale-105 shadow-md shadow-gold/30 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:shadow-none disabled:transform-none"
         >
-          <ShoppingCart size={14} className="inline mr-1" /> Add to Cart
+          <ShoppingCart size={14} className="inline mr-1" /> {Number(product.stock) > 0 ? 'Add to Cart' : 'Out of Stock'}
         </button>
       </div>
     </div>

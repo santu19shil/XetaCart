@@ -75,6 +75,7 @@ export default function ProductDetail() {
   }, [id, user]);
 
   const addCurrentProductToCart = async () => {
+    if (Number(product?.stock) <= 0 || quantity > Number(product?.stock)) return;
     await addToCart(product.id, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -215,8 +216,9 @@ export default function ProductDetail() {
                     </button>
                     <span className="w-8 text-center font-semibold">{quantity}</span>
                     <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                      onClick={() => setQuantity(Math.min(Number(product.stock), quantity + 1))}
+                      disabled={Number(product.stock) <= 0 || quantity >= Number(product.stock)}
+                      className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       +
                     </button>
@@ -225,7 +227,8 @@ export default function ProductDetail() {
 
                 <button
                   onClick={handleAddToCart}
-                  className={`w-full py-3 rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all ${
+                  disabled={Number(product.stock) <= 0}
+                  className={`w-full py-3 rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:shadow-none ${
                     added
                       ? 'bg-green-600 text-white'
                       : 'gradient-gold text-dark shadow-lg shadow-gold/30 hover:scale-[1.02]'

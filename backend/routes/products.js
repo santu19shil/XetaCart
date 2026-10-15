@@ -35,8 +35,7 @@ router.get('/', [
 
     let query = supabase
       .from('products')
-      .select('*, users(name)')
-      .gt('stock', 0);
+      .select('*, users(name)');
 
     if (category) {
       query = query.ilike('category', `%${sanitizeSearch(category)}%`);
@@ -98,8 +97,7 @@ router.get('/categories', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('category')
-      .gt('stock', 0);
+      .select('category');
 
     if (error) {
       return handleError(error, res);
@@ -125,7 +123,6 @@ router.get('/brands', [
     let query = supabase
       .from('products')
       .select('brand')
-      .gt('stock', 0)
       .neq('brand', '')
       .not('brand', 'is', null);
 
