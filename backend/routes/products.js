@@ -35,7 +35,7 @@ router.get('/', [
 
     let query = supabase
       .from('products')
-      .select('*, users(name)');
+      .select('id, name, description, category, brand, price, mrp, discount, stock, image_url, is_lightning, hot_percentage, free_delivery, rating, reviews, product_code, seller_id, created_at, updated_at');
 
     if (category) {
       query = query.ilike('category', `%${sanitizeSearch(category)}%`);
@@ -81,13 +81,7 @@ router.get('/', [
       return handleError(error, res);
     }
 
-    const products = (data || []).map((p) => ({
-      ...p,
-      seller_name: p.users?.name || null,
-      users: undefined,
-    }));
-
-    res.json(products);
+    res.json(data || []);
   } catch (error) {
     handleError(error, res);
   }
@@ -146,7 +140,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('*, users(name)')
+      .select('id, name, description, category, brand, price, mrp, discount, stock, image_url, is_lightning, hot_percentage, free_delivery, rating, reviews, product_code, seller_id, created_at, updated_at')
       .eq('id', req.params.id)
       .maybeSingle();
 
@@ -157,7 +151,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    res.json({ ...data, seller_name: data.users?.name || null, users: undefined });
+    res.json(data);
   } catch (error) {
     handleError(error, res);
   }

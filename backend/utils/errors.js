@@ -20,6 +20,11 @@ class AppError extends Error {
 }
 
 const handleError = (error, res) => {
+  // Never leak raw error messages (especially HTML from Cloudflare/Supabase)
+  const safeMessage = (error.message || '').includes('<!DOCTYPE html>')
+    ? 'Database connection error'
+    : (error.message || 'Internal server error');
+
   console.error(`[${new Date().toISOString()}] Error:`, {
     message: error.message,
     code: error.code,
@@ -43,11 +48,11 @@ const handleError = (error, res) => {
       case '22P02':
         return res.status(400).json({ message: ERROR_MESSAGES.VALIDATION_ERROR, code: 'VALIDATION_ERROR' });
       default:
-        return res.status(500).json({ message: ERROR_MESSAGES.SERVER_ERROR, code: 'SERVER_ERROR' });
+        return res.status(500).json({ message: safeMessage, code: 'SERVER_ERROR' });
     }
   }
 
-  return res.status(500).json({ message: ERROR_MESSAGES.SERVER_ERROR, code: 'SERVER_ERROR' });
+  return res.status(500).json({ message: safeMessage, code: 'SERVER_ERROR' });
 };
 
 module.exports = { AppError, handleError, ERROR_MESSAGES };
