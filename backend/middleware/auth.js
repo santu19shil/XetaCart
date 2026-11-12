@@ -8,6 +8,9 @@ const hasAuthConfiguration = Boolean(
 );
 
 const authMiddleware = async (req, res, next) => {
+  // Auth check is only for endpoints that REQUIRE a valid token.
+  // Registration and login don't need auth, so they work even if
+  // JWT_SECRET is misconfigured.
   if (!hasAuthConfiguration) {
     return res.status(503).json({
       code: 'AUTH_CONFIGURATION_REQUIRED',
