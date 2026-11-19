@@ -27,6 +27,24 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Hide server setup details if an older deployment still returns them.
+    const responseData = error.response?.data;
+    if (responseData && typeof responseData === 'object') {
+      const message = responseData.message || '';
+      if (responseData.code === 'AUTH_CONFIGURATION_REQUIRED'
+        || /JWT_SECRET|REFRESH_SECRET|Authentication is unavailable|Production environment variables in Vercel/i.test(message)) {
+        error.response.data = {
+          ...responseData,
+          message: 'Sign-in is temporarily unavailable. Please try again later.',
+        };
+      } else if (responseData.code === 'API_CONFIGURATION_REQUIRED') {
+        error.response.data = {
+          ...responseData,
+          message: 'The store is temporarily unavailable. Please try again later.',
+        };
+      }
+    }
     
     // Handle network errors (backend not running)
     if (!error.response) {
