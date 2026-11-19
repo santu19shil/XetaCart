@@ -28,7 +28,7 @@ router.post('/register', [
   if (!hasAuthConfiguration) {
     return res.status(503).json({
       code: 'AUTH_CONFIGURATION_REQUIRED',
-      message: 'Registration and sign-in are unavailable until JWT_SECRET and REFRESH_SECRET are configured with at least 32 characters each.',
+      message: 'Sign-in is temporarily unavailable. Please try again later.',
     });
   }
 
@@ -82,7 +82,7 @@ router.post('/login', [
   if (!hasAuthConfiguration) {
     return res.status(503).json({
       code: 'AUTH_CONFIGURATION_REQUIRED',
-      message: 'Registration and sign-in are unavailable until JWT_SECRET and REFRESH_SECRET are configured with at least 32 characters each.',
+      message: 'Sign-in is temporarily unavailable. Please try again later.',
     });
   }
 
@@ -193,7 +193,7 @@ router.post('/refresh', async (req, res) => {
     clearAuthCookies(res);
     return res.status(503).json({
       code: 'AUTH_CONFIGURATION_REQUIRED',
-      message: 'Session refresh is unavailable until JWT_SECRET and REFRESH_SECRET are configured with at least 32 characters each.',
+      message: 'Sign-in is temporarily unavailable. Please try again later.',
     });
   }
 

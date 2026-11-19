@@ -14,7 +14,7 @@ const authMiddleware = async (req, res, next) => {
   if (!hasAuthConfiguration) {
     return res.status(503).json({
       code: 'AUTH_CONFIGURATION_REQUIRED',
-      message: 'Authentication is unavailable until JWT_SECRET and REFRESH_SECRET are configured with at least 32 characters each.',
+      message: 'Sign-in is temporarily unavailable. Please try again later.',
     });
   }
 

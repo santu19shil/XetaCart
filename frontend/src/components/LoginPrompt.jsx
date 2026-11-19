@@ -40,7 +40,14 @@ export default function LoginPrompt({ isOpen, onClose, onSuccess }) {
         navigate(loggedInUser?.role === 'seller' ? '/seller' : '/');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Something went wrong. Please try again.';
+      const responseData = err.response?.data;
+      const authUnavailable = ['AUTH_CONFIGURATION_REQUIRED', 'API_CONFIGURATION_REQUIRED'].includes(responseData?.code)
+        || /JWT_SECRET|REFRESH_SECRET|Authentication is unavailable|Production environment variables in Vercel/i.test(responseData?.message || '');
+      const msg = authUnavailable
+        ? (responseData?.code === 'API_CONFIGURATION_REQUIRED'
+          ? 'The store is temporarily unavailable. Please try again later.'
+          : 'Sign-in is temporarily unavailable. Please try again later.')
+        : responseData?.message || responseData?.errors?.[0]?.msg || 'Something went wrong. Please try again.';
       setError(msg);
     }
   };
